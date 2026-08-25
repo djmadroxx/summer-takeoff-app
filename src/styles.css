@@ -1142,3 +1142,72 @@ input:focus-visible {
 .remember-me input:checked ~ .remember-text {
   color: #d9e8df;
 }
+
+
+.pwa-required {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.pwa-required-card {
+  width: min(100%, 420px);
+  text-align: center;
+}
+
+.pwa-required-logo {
+  width: 84px;
+  height: 84px;
+  margin: 0 auto 24px;
+  border-radius: 22px;
+  overflow: hidden;
+}
+
+.pwa-required-logo img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.pwa-required-card h1 {
+  margin: 0 0 14px;
+}
+
+.pwa-required-text {
+  margin: 0 auto 24px;
+  opacity: 0.8;
+  line-height: 1.5;
+}
+
+.pwa-required-instructions {
+  padding: 18px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.pwa-required-instructions p {
+  margin: 10px 0 0;
+  line-height: 1.5;
+  opacity: 0.85;
+}
+
+.pwa-install-button {
+  width: 100%;
+  border: 0;
+  border-radius: 14px;
+  padding: 15px 20px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pwa-required-hint {
+  margin: 14px 0 0;
+  font-size: 13px;
+  opacity: 0.65;
+  line-height: 1.4;
+}

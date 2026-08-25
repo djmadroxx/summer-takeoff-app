@@ -4,7 +4,7 @@ import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { QrPage } from './pages/QrPage';
 import { ScannerPage } from './pages/ScannerPage';
-
+import PWAOnly from './PWAOnly';
 
 import {
   getStoredUser,
@@ -23,6 +23,14 @@ type Page =
   | 'scanner';
 
 function App() {
+  return (
+    <PWAOnly>
+      <AppContent />
+    </PWAOnly>
+  );
+}
+
+function AppContent() {
   const [user, setUser] = useState<User | null>(
     () => getStoredUser(),
   );
