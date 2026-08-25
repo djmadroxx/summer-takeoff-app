@@ -1,13 +1,17 @@
+import type { Role } from '@summer-takeoff/shared';
+
 export interface User {
-  id: string;
-  email: string;
-  username: string;
-  name: string;
-  memberId: string;
-  qrToken: string;
-  role: 'user' | 'staff' | 'admin';
-  isActive: boolean;
+    id: string;
+    email: string;
+    username: string;
+    name: string;
+    memberId: string;
+    qrToken: string;
+    token: number;
+    role: Role;
+    isActive: boolean;
 }
+
 
 const STORAGE_KEY = 'summer-takeoff-user';
 
@@ -15,6 +19,31 @@ export function getStoredUser(): User | null {
   try {
     const value = localStorage.getItem(STORAGE_KEY);
     return value ? (JSON.parse(value) as User) : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function refreshUser(): Promise<User | null> {
+  try {
+    const response = await fetch('/api/auth/me', {
+      method: 'GET',
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const data = await response.json();
+    const user = data.user as User;
+
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify(user),
+    );
+
+    return user;
   } catch {
     return null;
   }

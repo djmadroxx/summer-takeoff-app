@@ -1,11 +1,16 @@
 {
   "name": "summer-takeoff-app",
   "private": true,
+  "workspaces": [
+    "packages/*",
+    "server"
+  ],
   "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "npm run build:shared && tsc -b && vite build",
+    "build:shared": "tsc -p packages/shared/tsconfig.json",
     "preview": "vite preview",
     "lint": "eslint ."
   },

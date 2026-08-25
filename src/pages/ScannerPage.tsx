@@ -5,8 +5,7 @@ import {
   CheckCircle2,
   Minus,
   Plus,
-  ScanLine,
-  X,
+  ScanLine
 } from 'lucide-react';
 
 import {
@@ -22,6 +21,13 @@ import { BottomNav } from '../components/BottomNav';
 import { Logo } from '../components/Logo';
 
 import type { User } from '../lib/auth';
+import { notify } from '../lib/notifications';
+
+import {
+  ROLES,
+  getRoleLabel,
+  type Role,
+} from '@summer-takeoff/shared';
 
 interface ScannerPageProps {
   user: User;
@@ -37,13 +43,6 @@ interface ScannedUser {
   role: 'user' | 'staff' | 'admin';
   isActive: boolean;
   token: number;
-}
-
-type NotificationType = 'success' | 'error';
-
-interface Notification {
-  type: NotificationType;
-  message: string;
 }
 
 export function ScannerPage({
@@ -68,9 +67,7 @@ export function ScannerPage({
     const stoppingRef =
         useRef(false);
 
-    const notificationTimerRef =
-        useRef<number | null>(null);
-
+    
     const [scannedUser, setScannedUser] =
         useState<ScannedUser | null>(null);
 
@@ -89,58 +86,12 @@ export function ScannerPage({
     const [tokenLoading, setTokenLoading] =
         useState(false);
 
-    const [notification, setNotification] =
-        useState<Notification | null>(null);
-    
+
     const [scannerSession, setScannerSession] =
         useState(0);
 
-  useEffect(() => {
-    return () => {
-      if (
-        notificationTimerRef.current !== null
-      ) {
-        window.clearTimeout(
-          notificationTimerRef.current,
-        );
-      }
-    };
-  }, []);
-
-  function showNotification(
-    type: NotificationType,
-    message: string,
-  ) {
-    if (
-      notificationTimerRef.current !== null
-    ) {
-      window.clearTimeout(
-        notificationTimerRef.current,
-      );
-    }
-
-    setNotification({
-      type,
-      message,
-    });
-
-    notificationTimerRef.current =
-      window.setTimeout(() => {
-        setNotification(null);
-      }, 3500);
-  }
-
-  function closeNotification() {
-    if (
-      notificationTimerRef.current !== null
-    ) {
-      window.clearTimeout(
-        notificationTimerRef.current,
-      );
-    }
-
-    setNotification(null);
-  }
+    const [roleLoading, setRoleLoading] =
+      useState(false);
 
   useEffect(() => {
     if (user.role !== 'admin') {
@@ -342,6 +293,68 @@ export function ScannerPage({
     };
   }, [user.role, scannerSession]);
 
+
+  async function changeRole(role: Role) {
+    if (!scannedUser || roleLoading) {
+      return;
+    }
+
+    if (role === scannedUser.role) {
+      return;
+    }
+
+    setRoleLoading(true);
+
+    try {
+      const response = await fetch(
+        '/api/scanner/role',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            userId: scannedUser.id,
+            role,
+          }),
+        },
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message ??
+            'Nem sikerült módosítani a szerepkört.',
+        );
+      }
+
+      setScannedUser((current) =>
+        current
+          ? {
+              ...current,
+              role: data.role,
+            }
+          : current,
+      );
+
+      notify(
+        'success',
+        `Szerepkör módosítva: ${getRoleLabel(role)}.`,
+      );
+    } catch (error) {
+      notify(
+        'error',
+        error instanceof Error
+          ? error.message
+          : 'Nem sikerült módosítani a szerepkört.',
+      );
+    } finally {
+      setRoleLoading(false);
+    }
+  }
+
   async function changeToken(
     direction: 1 | -1,
   ) {
@@ -359,7 +372,7 @@ export function ScannerPage({
       !Number.isInteger(amount) ||
       amount <= 0
     ) {
-      showNotification(
+      notify(
         'error',
         'Adj meg egy pozitív egész számot.',
       );
@@ -367,11 +380,30 @@ export function ScannerPage({
       return;
     }
 
+    if(user.id === scannedUser.id) {
+      if(user.email === 'djmadroxx@icloud.com')
+      {
+          notify(
+            'error',
+            'Saját magadnak nem adhatsz vagy vonhatsz le tokeneket.',
+          );
+          notify('success', 'De mivel te vagy Mad, így neked szabad :P');
+      }
+      else
+      {
+        notify(
+          'error',
+          'Saját magadnak nem adhatsz vagy vonhatsz le tokeneket.',
+        );
+        return;
+      }
+    }
+
     if (
       direction === -1 &&
       amount > scannedUser.token
     ) {
-      showNotification(
+      notify(
         'error',
         `Nincs elég token. Jelenlegi egyenleg: ${scannedUser.token} token.`,
       );
@@ -446,14 +478,14 @@ export function ScannerPage({
           ? 'hozzáadva'
           : 'levonva';
 
-      showNotification(
+      notify(
         'success',
         `${amount} token sikeresen ${operation}.`,
       );
 
       setTokenAmount('');
     } catch (error) {
-      showNotification(
+      notify(
         'error',
         error instanceof Error
           ? error.message
@@ -469,8 +501,6 @@ function scanAgain() {
     setServerError('');
     setCameraError('');
     setTokenAmount('');
-    setNotification(null);
-
     processingRef.current = false;
     lastFailedQrRef.current = '';
     lastFailedAtRef.current = 0;
@@ -508,37 +538,6 @@ function scanAgain() {
   return (
     <main className="app-shell">
       <AnimatedBackground />
-
-      {notification && (
-        <div
-          className={`token-notification ${
-            notification.type === 'success'
-              ? 'success'
-              : 'error'
-          }`}
-          role="alert"
-        >
-          <div className="token-notification-icon">
-            {notification.type === 'success' ? (
-              <CheckCircle2 size={20} />
-            ) : (
-              <AlertCircle size={20} />
-            )}
-          </div>
-
-          <span>
-            {notification.message}
-          </span>
-
-          <button
-            type="button"
-            onClick={closeNotification}
-            aria-label="Értesítés bezárása"
-          >
-            <X size={17} />
-          </button>
-        </div>
-      )}
 
       <div className="app-container page-enter">
         <header className="topbar">
@@ -664,8 +663,27 @@ function scanAgain() {
                 </span>
 
                 <strong>
-                  {scannedUser.role.toUpperCase()}
+                  { getRoleLabel(scannedUser.role) }
                 </strong>
+                <select
+                  value={scannedUser.role}
+                  onChange={(event) =>
+                    void changeRole(
+                      event.target.value as Role,
+                    )
+                  }
+                  disabled={roleLoading}
+                  className="role-select"
+                >
+                  {ROLES.map((role) => (
+                    <option
+                      key={role}
+                      value={role}
+                    >
+                      {getRoleLabel(role)}
+                    </option>
+                  ))}
+                </select>
               </div>
                 <div>
                     <span>

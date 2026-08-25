@@ -13,6 +13,7 @@ import {
 
 import { AnimatedBackground } from '../components/AnimatedBackground';
 import { Logo } from '../components/Logo';
+import { notify } from '../lib/notifications';
 
 interface RegisterPageProps {
   onRegister: (
@@ -41,14 +42,11 @@ export function RegisterPage({
   const [showPasswordAgain, setShowPasswordAgain] =
     useState(false);
 
-  const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit: SubmitEventHandler<HTMLFormElement> =
     async (event) => {
       event.preventDefault();
-
-      setError('');
 
       if (
         !name.trim() ||
@@ -57,41 +55,31 @@ export function RegisterPage({
         !password ||
         !passwordAgain
       ) {
-        setError(
-          'Minden mező kitöltése kötelező.',
-        );
+        notify('error', 'Minden mező kitöltése kötelező.');
 
         return;
       }
 
       if (!email.includes('@')) {
-        setError(
-          'Érvényes e-mail címet adj meg.',
-        );
+        notify('error', 'Érvényes e-mail címet adj meg.');
 
         return;
       }
 
       if (username.trim().length < 3) {
-        setError(
-          'A felhasználónév legalább 3 karakteres legyen.',
-        );
+        notify('error', 'A felhasználónév legalább 3 karakteres legyen.');
 
         return;
       }
 
       if (password.length < 8) {
-        setError(
-          'A jelszónak legalább 8 karakteresnek kell lennie.',
-        );
+        notify('error', 'A jelszónak legalább 8 karakteresnek kell lennie.');
 
         return;
       }
 
       if (password !== passwordAgain) {
-        setError(
-          'A két jelszó nem egyezik.',
-        );
+        notify('error', 'A két jelszó nem egyezik.');
 
         return;
       }
@@ -106,11 +94,7 @@ export function RegisterPage({
           password,
         );
       } catch (error) {
-        setError(
-          error instanceof Error
-            ? error.message
-            : 'Sikertelen regisztráció.',
-        );
+        notify('error', error instanceof Error ? error.message : 'Sikertelen regisztráció.');
       } finally {
         setIsLoading(false);
       }
@@ -324,15 +308,6 @@ export function RegisterPage({
             </button>
           </div>
 
-          {error && (
-            <div
-              className="form-error"
-              role="alert"
-            >
-              {error}
-            </div>
-          )}
-
           <button
             className="primary-button"
             disabled={isLoading}
@@ -354,7 +329,7 @@ export function RegisterPage({
             onClick={onBackToLogin}
             type="button"
           >
-            Már van fiókod? Bejelentkezés
+            Már van fiókod? <strong>Bejelentkezés</strong>
           </button>
         </form>
 
@@ -362,8 +337,7 @@ export function RegisterPage({
           <ShieldCheck size={17} />
 
           <span>
-            Biztonságos regisztráció • Summer
-            Takeoff
+            Biztonságos regisztráció • Summer Takeoff
           </span>
         </div>
       </div>

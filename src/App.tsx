@@ -1,13 +1,16 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { QrPage } from './pages/QrPage';
 import { ScannerPage } from './pages/ScannerPage';
+
 import PWAOnly from './PWAOnly';
+import { NotificationContainer } from './components/NotificationContainer';
 
 import {
   getStoredUser,
+  refreshUser,
   signIn,
   signOut,
   type User,
@@ -38,6 +41,36 @@ function AppContent() {
   const [page, setPage] = useState<Page>(
     () => (getStoredUser() ? 'qr' : 'login'),
   );
+
+  /*
+   * USER ADATOK HÁTTÉRBEN TÖRTÉNŐ FRISSÍTÉSE
+   *
+   * Bejelentkezett user esetén 5 másodpercenként
+   * lekérjük az aktuális adatokat a backendtől.
+   */
+  useEffect(() => {
+    if (!user) return;
+
+    let cancelled = false;
+
+    const updateUser = async () => {
+      const updatedUser = await refreshUser();
+
+      if (!cancelled && updatedUser) {
+        setUser(updatedUser);
+      }
+    };
+
+    const interval = window.setInterval(
+      updateUser,
+      5000,
+    );
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
+  }, [user]);
 
   async function handleLogin(
     email: string,
@@ -99,52 +132,71 @@ function AppContent() {
     }
   }
 
-  if (!user) {
-    if (page === 'register') {
+  function renderPage() {
+    /*
+     * NINCS BEJELENTKEZVE
+     */
+    if (!user) {
+      if (page === 'register') {
+        return (
+          <RegisterPage
+            onRegister={handleRegister}
+            onBackToLogin={() =>
+              setPage('login')
+            }
+          />
+        );
+      }
+
       return (
-        <RegisterPage
-          onRegister={handleRegister}
-          onBackToLogin={() =>
-            setPage('login')
+        <LoginPage
+          onLogin={handleLogin}
+          onRegister={() =>
+            setPage('register')
           }
         />
       );
     }
 
+    /*
+     * SCANNER
+     */
+    if (page === 'scanner') {
+      if (user.role !== 'admin') {
+        setPage('qr');
+        return null;
+      }
+
+      return (
+        <ScannerPage
+          user={user}
+          onBack={() => setPage('qr')}
+        />
+      );
+    }
+
+    /*
+     * QR / USER OLDAL
+     */
     return (
-      <LoginPage
-        onLogin={handleLogin}
-        onRegister={() =>
-          setPage('register')
+      <QrPage
+        user={user}
+        onLogout={handleLogout}
+        onOpenScanner={
+          user.role === 'admin'
+            ? handleOpenScanner
+            : undefined
         }
       />
     );
   }
 
-  if (page === 'scanner') {
-    if (user.role !== 'admin') {
-      setPage('qr');
-      return null;
-    }
-
-    return (
-      <ScannerPage
-        user={user}
-        onBack={() => setPage('qr')}
-      />
-    );
-  }
-
   return (
-    <QrPage
-      user={user}
-      onLogout={handleLogout}
-      onOpenScanner={
-        user.role === 'admin'
-          ? handleOpenScanner
-          : undefined
-      }
-    />
+    <>
+      <NotificationContainer />
+
+      {renderPage()}
+    </>
   );
 }
 

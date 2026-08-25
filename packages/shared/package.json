@@ -1,0 +1,17 @@
+{
+  "name": "@summer-takeoff/shared",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/roles.js",
+  "types": "./dist/roles.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/roles.d.ts",
+      "import": "./dist/roles.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc"
+  }
+}

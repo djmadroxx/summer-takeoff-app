@@ -4,6 +4,10 @@ import { eq, sql } from 'drizzle-orm';
 
 import { db } from './db/index.js';
 import { users } from './db/schema.js';
+import {
+  isValidRole,
+  type Role,
+} from '@summer-takeoff/shared';
 
 interface LookupBody {
   qrToken: string;
@@ -13,11 +17,15 @@ interface TokenBody {
   userId: string;
   amount: number;
 }
+interface RoleBody {
+  userId: string;
+  role: Role;
+}
 
 interface JwtPayload {
   sub: string;
   email: string;
-  role: 'user' | 'staff' | 'admin';
+  role: Role;
 }
 
 export async function scannerRoutes(
@@ -88,7 +96,74 @@ export async function scannerRoutes(
       }
     },
   );
+  /*
+   * ROLE MÓDOSÍTÁSA
+   */
+  app.post<{ Body: RoleBody }>(
+    '/role',
+    async (request, reply) => {
+      try {
+        await request.jwtVerify();
 
+        const authUser =
+          request.user as JwtPayload;
+
+        if (authUser.role !== 'admin') {
+          return reply.code(403).send({
+            message:
+              'Nincs jogosultságod ehhez a művelethez.',
+          });
+        }
+
+        const { userId, role } = request.body;
+
+        if (!userId) {
+          return reply.code(400).send({
+            message:
+              'Felhasználó azonosító megadása kötelező.',
+          });
+        }
+
+        if (!isValidRole(role)) {
+          return reply.code(400).send({
+            message:
+              'Érvénytelen szerepkör.',
+          });
+        }
+
+        const result = await db
+          .update(users)
+          .set({
+            role,
+            updatedAt: new Date(),
+          })
+          .where(eq(users.id, userId))
+          .returning({
+            id: users.id,
+            role: users.role,
+          });
+
+        const updatedUser = result[0];
+
+        if (!updatedUser) {
+          return reply.code(404).send({
+            message:
+              'A felhasználó nem található.',
+          });
+        }
+
+        return {
+          userId: updatedUser.id,
+          role: updatedUser.role,
+        };
+      } catch {
+        return reply.code(401).send({
+          message:
+            'Érvénytelen vagy hiányzó bejelentkezés.',
+        });
+      }
+    },
+  );
   app.post<{ Body: TokenBody }>(
     '/token',
     async (request, reply) => {

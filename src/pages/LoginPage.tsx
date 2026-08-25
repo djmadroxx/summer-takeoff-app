@@ -12,6 +12,7 @@ import {
 
 import { AnimatedBackground } from '../components/AnimatedBackground';
 import { Logo } from '../components/Logo';
+import { notify } from '../lib/notifications';
 
 interface LoginPageProps {
   onLogin: (
@@ -40,23 +41,21 @@ export function LoginPage({
   });
 
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit: SubmitEventHandler<HTMLFormElement> =
     async (event) => {
       event.preventDefault();
-      setError('');
 
       if (!email.trim() || !password.trim()) {
-        setError(
+        notify('error',
           'Add meg az e-mail címed és a jelszavad.',
         );
         return;
       }
 
       if (!email.includes('@')) {
-        setError(
+        notify('error',
           'Érvényes e-mail címet adj meg.',
         );
         return;
@@ -88,7 +87,7 @@ export function LoginPage({
           password,
         );
       } catch (error) {
-        setError(
+        notify('error',
           error instanceof Error
             ? error.message
             : 'Sikertelen bejelentkezés.',
@@ -220,14 +219,6 @@ export function LoginPage({
               Jegyezz meg
             </span>
           </label>
-          {error && (
-            <div
-              className="form-error"
-              role="alert"
-            >
-              {error}
-            </div>
-          )}
 
           <button
             className="primary-button"

@@ -3,10 +3,14 @@ import {
   LogOut,
   ShieldCheck,
   UserRound,
+  Coins,
 } from 'lucide-react';
 
 import { QRCodeSVG } from 'qrcode.react';
-import { getRoleLabel } from '../lib/roles';
+import {
+  getRoleLabel,
+} from '@summer-takeoff/shared';
+
 import { AnimatedBackground } from '../components/AnimatedBackground';
 import { BottomNav } from '../components/BottomNav';
 import { Logo } from '../components/Logo';
@@ -81,6 +85,10 @@ export function QrPage({
               <strong>
                 {user.memberId}
               </strong>
+                  <Copy size={17}
+                  aria-label="Tag azonosító másolása"
+                  onClick={copyId}
+                  type="button"/>
             </div>
 
             <span className="status-pill">
@@ -120,16 +128,9 @@ export function QrPage({
 
           <div className="ticket-divider" />
 
-          <div className="member-row">
-
-            <button
-              className="copy-button"
-              aria-label="Tag azonosító másolása"
-              onClick={copyId}
-              type="button"
-            >
-              <Copy size={17} />
-            </button>
+          <div className="qr-caption" >
+              <Coins size={17} />
+              <span>TOKENEID: {user.token} db</span>
           </div>
 
           <div className="member-row">

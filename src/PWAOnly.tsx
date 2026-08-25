@@ -16,9 +16,10 @@ function isStandalone() {
 }
 
 function isIOS() {
-  return /iPad|iPhone|iPod/.test(navigator.userAgent) && !(
-    window as Window & { MSStream?: unknown }
-  ).MSStream;
+  return (
+    /iPad|iPhone|iPod/.test(navigator.userAgent) &&
+    !(window as Window & { MSStream?: unknown }).MSStream
+  );
 }
 
 export default function PWAOnly({
@@ -26,44 +27,50 @@ export default function PWAOnly({
 }: {
   children: ReactNode;
 }) {
+  // Localhost / development módban ne legyen PWA-kényszerítés
+  if (import.meta.env.DEV) {
+    return <>{children}</>;
+  }
+
   const [standalone, setStandalone] = useState<boolean | null>(null);
   const [installPrompt, setInstallPrompt] =
     useState<BeforeInstallPromptEvent | null>(null);
 
   useEffect(() => {
-        setStandalone(isStandalone());
+    setStandalone(isStandalone());
 
-        function handleBeforeInstallPrompt(event: Event) {
-            event.preventDefault();
-            setInstallPrompt(event as BeforeInstallPromptEvent);
-        }
+    function handleBeforeInstallPrompt(event: Event) {
+      event.preventDefault();
+      setInstallPrompt(event as BeforeInstallPromptEvent);
+    }
 
-        function handleAppInstalled() {
-            setInstallPrompt(null);
-        }
+    function handleAppInstalled() {
+      setInstallPrompt(null);
+      setStandalone(true);
+    }
 
-        window.addEventListener(
-            'beforeinstallprompt',
-            handleBeforeInstallPrompt,
-        );
+    window.addEventListener(
+      'beforeinstallprompt',
+      handleBeforeInstallPrompt,
+    );
 
-        window.addEventListener(
-            'appinstalled',
-            handleAppInstalled,
-        );
+    window.addEventListener(
+      'appinstalled',
+      handleAppInstalled,
+    );
 
-        return () => {
-            window.removeEventListener(
-            'beforeinstallprompt',
-            handleBeforeInstallPrompt,
-            );
+    return () => {
+      window.removeEventListener(
+        'beforeinstallprompt',
+        handleBeforeInstallPrompt,
+      );
 
-            window.removeEventListener(
-            'appinstalled',
-            handleAppInstalled,
-            );
-        };
-        }, []);
+      window.removeEventListener(
+        'appinstalled',
+        handleAppInstalled,
+      );
+    };
+  }, []);
 
   async function handleInstall() {
     if (!installPrompt) return;
@@ -74,6 +81,7 @@ export default function PWAOnly({
 
     if (outcome === 'accepted') {
       setInstallPrompt(null);
+      setStandalone(true);
     }
   }
 

@@ -34,6 +34,7 @@ export async function authenticateUser(email: string, password: string) {
     name: user.name,
     memberId: user.memberId,
     qrToken: user.qrToken,
+    token: user.token,
     role: user.role,
   };
 }

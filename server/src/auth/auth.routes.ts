@@ -36,6 +36,51 @@ function generateQrToken(): string {
 
 export async function authRoutes(app: FastifyInstance) {
   /*
+ * CURRENT USER
+ */
+  app.get(
+    '/me',
+    async (request, reply) => {
+      try {
+        const decoded =
+          await request.jwtVerify<{
+            sub: string;
+          }>();
+
+        const result = await db
+          .select({
+            id: users.id,
+            email: users.email,
+            username: users.username,
+            name: users.name,
+            memberId: users.memberId,
+            qrToken: users.qrToken,
+            token: users.token,
+            role: users.role,
+            isActive: users.isActive,
+          })
+          .from(users)
+          .where(eq(users.id, decoded.sub))
+          .limit(1);
+
+        if (result.length === 0) {
+          return reply.code(404).send({
+            message: 'Felhasználó nem található.',
+          });
+        }
+
+        return {
+          user: result[0],
+        };
+      } catch {
+        return reply.code(401).send({
+          message: 'Érvénytelen vagy lejárt munkamenet.',
+        });
+      }
+    },
+  );
+  
+  /*
    * LOGIN
    */
   app.post<{ Body: LoginBody }>(
@@ -230,11 +275,10 @@ export async function authRoutes(app: FastifyInstance) {
             name: normalizedName,
             memberId,
             qrToken,
-
+            token: 0,
             // A regisztráció
             // MINDIG normál user.
             role: 'user',
-
             isActive: true,
           })
           .returning({
@@ -247,6 +291,8 @@ export async function authRoutes(app: FastifyInstance) {
               users.memberId,
             qrToken:
               users.qrToken,
+            token:
+              users.token,
             role: users.role,
             isActive:
               users.isActive,

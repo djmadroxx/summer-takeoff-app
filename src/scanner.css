@@ -474,90 +474,6 @@
   line-height: 1.45;
 }
 
-/* TOKEN NOTIFICATION */
-
-.token-notification {
-  position: fixed;
-  z-index: 9999;
-  top: 18px;
-  left: 50%;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: min(420px, calc(100vw - 32px));
-  padding: 13px 14px;
-  box-sizing: border-box;
-  border: 1px solid rgba(255,255,255,.1);
-  border-radius: 15px;
-  transform: translateX(-50%);
-  animation: token-notification-in .3s ease-out, token-notification-out .3s ease-in 3.2s forwards;
-  backdrop-filter: blur(20px) saturate(140%);
-  -webkit-backdrop-filter: blur(20px) saturate(140%);
-  box-shadow: 0 14px 40px rgba(0,0,0,.38);
-}
-
-.token-notification.success {
-  background: rgba(24,75,45,.9);
-  border-color: rgba(110,255,160,.2);
-}
-
-.token-notification.error {
-  background: rgba(85,24,28,.92);
-  border-color: rgba(255,110,110,.2);
-}
-
-.token-notification-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 auto;
-}
-
-.token-notification.success .token-notification-icon {
-  color: #8cffae;
-}
-
-.token-notification.error .token-notification-icon {
-  color: #ff9696;
-}
-
-.token-notification > span {
-  flex: 1;
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1.35;
-}
-
-.token-notification > button {
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 0;
-  border-radius: 8px;
-  background: rgba(255,255,255,.08);
-  color: inherit;
-  cursor: pointer;
-}
-
-@keyframes scannerErrorIn {
-  from { opacity: 0; transform: translateY(-8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes token-notification-in {
-  from { opacity: 0; transform: translateX(-50%) translateY(-18px) scale(.96); }
-  to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
-}
-
-@keyframes token-notification-out {
-  from { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
-  to { opacity: 0; transform: translateX(-50%) translateY(-10px) scale(.97); }
-}
-
 @media (max-width: 699px) {
   .scanner-header {
     margin-bottom: 16px;
@@ -600,7 +516,101 @@
     font-size: 16px;
   }
 
-  .token-notification {
+}
+
+.notification-container {
+  position: fixed;
+  z-index: 9999;
+  top: 22px;
+  left: 50%;
+  width: min(420px, calc(100vw - 32px));
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.token-notification {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 13px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.35);
+  pointer-events: auto;
+  animation:
+    token-notification-in 0.3s ease-out;
+}
+
+.token-notification.success {
+  background: rgba(35, 110, 65, 0.94);
+  border-color: rgba(110, 255, 160, 0.22);
+}
+
+.token-notification.error {
+  background: rgba(125, 35, 40, 0.96);
+  border-color: rgba(255, 110, 110, 0.22);
+}
+
+.token-notification-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.token-notification.success
+  .token-notification-icon {
+  color: #8cffae;
+}
+
+.token-notification.error
+  .token-notification-icon {
+  color: #ff9696;
+}
+
+.token-notification > span {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.token-notification > button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  color: inherit;
+  cursor: pointer;
+}
+
+@keyframes token-notification-in {
+  from {
+    opacity: 0;
+    transform: translateY(-18px) scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 480px) {
+  .notification-container {
     top: 14px;
     width: calc(100vw - 24px);
   }
