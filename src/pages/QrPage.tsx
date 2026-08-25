@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 
 import { QRCodeSVG } from 'qrcode.react';
-
+import { getRoleLabel } from '../lib/roles';
 import { AnimatedBackground } from '../components/AnimatedBackground';
 import { BottomNav } from '../components/BottomNav';
 import { Logo } from '../components/Logo';
@@ -90,7 +90,7 @@ export function QrPage({
           </div>
 
           <div className="ticket-title">
-            <h2>AZONOSÍTÓ QR</h2>
+            <h2>{getRoleLabel(user.role)}</h2>
           </div>
 
           <div className="qr-stage">
