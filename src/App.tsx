@@ -4,9 +4,19 @@ import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { QrPage } from './pages/QrPage';
 import { ScannerPage } from './pages/ScannerPage';
-
+import { ShopPage } from './pages/ShopPage';
+import { ProductsAdminPage } from './pages/ProductsAdminPage';
+import { ProfilePage } from './pages/ProfilePage';
+import { EventsPage } from './pages/EventsPage';
 import PWAOnly from './PWAOnly';
+
 import { NotificationContainer } from './components/NotificationContainer';
+import { BottomNav } from './components/BottomNav';
+
+import {
+  connectNotificationSocket,
+  disconnectNotificationSocket,
+} from './lib/notificationSocket';
 
 import {
   getStoredUser,
@@ -19,11 +29,15 @@ import {
 import './styles.css';
 import './scanner.css';
 
+import type {
+  NavigationPage,
+} from './components/BottomNav';
+
 type Page =
   | 'login'
   | 'register'
-  | 'qr'
-  | 'scanner';
+  | 'products-admin'
+  | NavigationPage;
 
 function App() {
   return (
@@ -34,52 +48,95 @@ function App() {
 }
 
 function AppContent() {
-  const [user, setUser] = useState<User | null>(
-    () => getStoredUser(),
-  );
+  const [user, setUser] =
+    useState<User | null>(
+      () => getStoredUser(),
+    );
 
-  const [page, setPage] = useState<Page>(
-    () => (getStoredUser() ? 'qr' : 'login'),
-  );
+  const [page, setPage] =
+    useState<Page>(
+      () =>
+        getStoredUser()
+          ? 'qr'
+          : 'login',
+    );
 
   /*
-   * USER ADATOK HÁTTÉRBEN TÖRTÉNŐ FRISSÍTÉSE
+   * ========================================================
+   * NOTIFICATION WEBSOCKET
+   * ========================================================
+   */
+
+  useEffect(() => {
+    if (!user) {
+      disconnectNotificationSocket();
+      return;
+    }
+
+    connectNotificationSocket();
+
+    return () => {
+      disconnectNotificationSocket();
+    };
+  }, [user]);
+
+  /*
+   * ========================================================
+   * USER ADATOK FRISSÍTÉSE
+   * ========================================================
    *
    * Bejelentkezett user esetén 5 másodpercenként
-   * lekérjük az aktuális adatokat a backendtől.
+   * lekérjük az aktuális adatokat.
    */
+
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      return;
+    }
 
     let cancelled = false;
 
     const updateUser = async () => {
-      const updatedUser = await refreshUser();
+      const updatedUser =
+        await refreshUser();
 
-      if (!cancelled && updatedUser) {
+      if (
+        !cancelled &&
+        updatedUser
+      ) {
         setUser(updatedUser);
       }
     };
 
-    const interval = window.setInterval(
-      updateUser,
-      5000,
-    );
+    const interval =
+      window.setInterval(
+        updateUser,
+        5000,
+      );
 
     return () => {
       cancelled = true;
-      window.clearInterval(interval);
+      window.clearInterval(
+        interval,
+      );
     };
   }, [user]);
+
+  /*
+   * ========================================================
+   * AUTH
+   * ========================================================
+   */
 
   async function handleLogin(
     email: string,
     password: string,
   ) {
-    const loggedInUser = await signIn(
-      email,
-      password,
-    );
+    const loggedInUser =
+      await signIn(
+        email,
+        password,
+      );
 
     setUser(loggedInUser);
     setPage('qr');
@@ -91,24 +148,27 @@ function AppContent() {
     name: string,
     password: string,
   ) {
-    const response = await fetch(
-      '/api/auth/register',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+    const response =
+      await fetch(
+        '/api/auth/register',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type':
+              'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            email,
+            username,
+            name,
+            password,
+          }),
         },
-        credentials: 'include',
-        body: JSON.stringify({
-          email,
-          username,
-          name,
-          password,
-        }),
-      },
-    );
+      );
 
-    const data = await response.json();
+    const data =
+      await response.json();
 
     if (!response.ok) {
       throw new Error(
@@ -126,21 +186,59 @@ function AppContent() {
     setPage('login');
   }
 
-  function handleOpenScanner() {
-    if (user?.role === 'admin') {
-      setPage('scanner');
+  /*
+   * ========================================================
+   * NAVIGATION
+   * ========================================================
+   *
+   * Minden navigáció egyetlen helyen történik.
+   *
+   * Az oldalaknak nem kell tudniuk a BottomNav-ról.
+   */
+
+  function navigate(
+    nextPage: NavigationPage,
+  ) {
+    if (!user) {
+      return;
     }
+
+    /*
+     * Scanner csak adminnak.
+     */
+    if (
+      nextPage === 'scanner' &&
+      user.role !== 'admin'
+    ) {
+      setPage('qr');
+      return;
+    }
+
+    setPage(nextPage);
   }
+
+  /*
+   * ========================================================
+   * PAGE RENDERING
+   * ========================================================
+   */
 
   function renderPage() {
     /*
+     * --------------------------------------------------------
      * NINCS BEJELENTKEZVE
+     * --------------------------------------------------------
      */
+
     if (!user) {
-      if (page === 'register') {
+      if (
+        page === 'register'
+      ) {
         return (
           <RegisterPage
-            onRegister={handleRegister}
+            onRegister={
+              handleRegister
+            }
             onBackToLogin={() =>
               setPage('login')
             }
@@ -158,11 +256,75 @@ function AppContent() {
       );
     }
 
+    if (page === 'events') {
+      return (
+        <EventsPage
+          user={user}
+          onNavigate={setPage}
+        />
+      );
+    }
     /*
-     * SCANNER
+     * --------------------------------------------------------
+     * SHOP
+     * --------------------------------------------------------
      */
-    if (page === 'scanner') {
-      if (user.role !== 'admin') {
+
+    if (page === 'shop') {
+      return (
+        <ShopPage
+          user={user}
+          onBack={() =>
+            setPage('qr')
+          }
+          onOpenProductsAdmin={() =>
+            setPage(
+              'products-admin',
+            )
+          }
+        />
+      );
+    }
+
+    /*
+     * --------------------------------------------------------
+     * ADMIN - TERMÉKEK
+     * --------------------------------------------------------
+     */
+
+    if (
+      page ===
+      'products-admin'
+    ) {
+      if (
+        user.role !== 'admin'
+      ) {
+        setPage('qr');
+        return null;
+      }
+
+      return (
+        <ProductsAdminPage
+          user={user}
+          onBack={() =>
+            setPage('qr')
+          }
+        />
+      );
+    }
+
+    /*
+     * --------------------------------------------------------
+     * SCANNER
+     * --------------------------------------------------------
+     */
+
+    if (
+      page === 'scanner'
+    ) {
+      if (
+        user.role !== 'admin'
+      ) {
         setPage('qr');
         return null;
       }
@@ -170,32 +332,83 @@ function AppContent() {
       return (
         <ScannerPage
           user={user}
-          onBack={() => setPage('qr')}
+          onBack={() =>
+            setPage('qr')
+          }
         />
       );
     }
 
     /*
-     * QR / USER OLDAL
+     * --------------------------------------------------------
+     * PROFIL
+     * --------------------------------------------------------
      */
+
+    if (
+      page === 'profile'
+    ) {
+      return (
+        <ProfilePage
+          user={user}
+          onBack={() =>
+            setPage('qr')
+          }
+          onUserUpdated={(
+            updatedUser,
+          ) => {
+            setUser(
+              updatedUser,
+            );
+          }}
+        />
+      );
+    }
+
+    /*
+     * --------------------------------------------------------
+     * QR / USER OLDAL
+     * --------------------------------------------------------
+     */
+
     return (
       <QrPage
         user={user}
-        onLogout={handleLogout}
-        onOpenScanner={
-          user.role === 'admin'
-            ? handleOpenScanner
-            : undefined
+        onLogout={
+          handleLogout
         }
       />
     );
   }
+
+  /*
+   * ========================================================
+   * APP
+   * ========================================================
+   */
 
   return (
     <>
       <NotificationContainer />
 
       {renderPage()}
+
+      {user && (
+        <BottomNav
+          active={
+            page === 'scanner'
+              ? 'scanner'
+              : page === 'shop' ||
+                  page === 'products-admin'
+                ? 'shop'
+                : page === 'profile'
+                  ? 'profile'
+                  : 'qr'
+          }
+          user={user}
+          onNavigate={navigate}
+        />
+      )}
     </>
   );
 }

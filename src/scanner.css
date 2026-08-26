@@ -1,40 +1,5 @@
 /* SCANNER */
 
-.scanner-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 20px;
-}
-
-.scanner-header h1 {
-  margin: 6px 0 0;
-  font-size: 31px;
-  line-height: 1;
-  letter-spacing: -.055em;
-}
-
-.scanner-header p:not(.muted-label) {
-  margin: 9px 0 0;
-  color: var(--muted);
-  font-size: 14px;
-  line-height: 1.45;
-}
-
-.scanner-icon {
-  width: 48px;
-  height: 48px;
-  flex: 0 0 48px;
-  display: grid;
-  place-items: center;
-  color: var(--accent);
-  border: 1px solid rgba(57,255,136,.25);
-  border-radius: 15px;
-  background: rgba(57,255,136,.05);
-  box-shadow: 0 0 25px rgba(57,255,136,.04), inset 0 1px 0 rgba(255,255,255,.06);
-}
-
 .scanner-card {
   width: 100%;
   min-width: 0;
@@ -128,19 +93,6 @@
 .scanner-error svg {
   flex: 0 0 auto;
   color: #aab1ad;
-  margin-top: 1px;
-}
-
-.scanner-card .form-error {
-  display: flex;
-  align-items: flex-start;
-  gap: 9px;
-  margin-top: 12px;
-}
-
-.scanner-card .form-error svg {
-  flex: 0 0 auto;
-  color: #ff7777;
   margin-top: 1px;
 }
 
@@ -467,23 +419,8 @@
   appearance: textfield;
 }
 
-.token-hint {
-  margin: 10px 2px 0;
-  color: #68706b;
-  font-size: 11px;
-  line-height: 1.45;
-}
-
 @media (max-width: 699px) {
-  .scanner-header {
-    margin-bottom: 16px;
-  }
-
-  .scanner-header h1 {
-    font-size: 29px;
-  }
-
-  .scanner-card {
+.scanner-card {
     padding: 9px;
     border-radius: 21px;
   }

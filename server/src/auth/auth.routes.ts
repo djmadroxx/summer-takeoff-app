@@ -9,6 +9,11 @@ import { users } from '../db/schema.js';
 
 import { authenticateUser } from './auth.service.js';
 
+
+interface UpdateUsernameBody {
+  username: string;
+}
+
 interface LoginBody {
   email: string;
   password: string;
@@ -81,6 +86,144 @@ export async function authRoutes(app: FastifyInstance) {
   );
   
   /*
+  * UPDATE USERNAME
+  */
+  app.patch<{ Body: UpdateUsernameBody }>(
+    '/username',
+    async (request, reply) => {
+      try {
+        const decoded =
+          await request.jwtVerify<{
+            sub: string;
+          }>();
+
+        const normalizedUsername =
+          request.body.username
+            ?.trim()
+            .toLowerCase();
+
+        if (!normalizedUsername) {
+          return reply.code(400).send({
+            message:
+              'Felhasználónév megadása kötelező.',
+          });
+        }
+
+        if (normalizedUsername.length < 3) {
+          return reply.code(400).send({
+            message:
+              'A felhasználónév legalább 3 karakteres legyen.',
+          });
+        }
+
+        const existingUser =
+          await db
+            .select({
+              id: users.id,
+            })
+            .from(users)
+            .where(
+              eq(
+                users.username,
+                normalizedUsername,
+              ),
+            )
+            .limit(1);
+
+        if (
+          existingUser.length > 0 &&
+          existingUser[0].id !== decoded.sub
+        ) {
+          return reply.code(409).send({
+            message:
+              'Ez a felhasználónév már foglalt.',
+          });
+        }
+
+        const result = await db
+          .update(users)
+          .set({
+            username: normalizedUsername,
+            updatedAt: new Date(),
+          })
+          .where(
+            eq(users.id, decoded.sub),
+          )
+          .returning({
+            id: users.id,
+            username: users.username,
+          });
+
+        const updatedUser = result[0];
+
+        if (!updatedUser) {
+          return reply.code(404).send({
+            message:
+              'Felhasználó nem található.',
+          });
+        }
+
+        /*
+        * A username a JWT-ben is szerepel,
+        * ezért új tokent kell létrehozni.
+        */
+        const userResult = await db
+          .select({
+            email: users.email,
+            role: users.role,
+            username: users.username,
+          })
+          .from(users)
+          .where(
+            eq(users.id, decoded.sub),
+          )
+          .limit(1);
+
+        const updatedUserData =
+          userResult[0];
+
+        if (!updatedUserData) {
+          return reply.code(404).send({
+            message:
+              'Felhasználó nem található.',
+          });
+        }
+
+        const token = await app.jwt.sign({
+          sub: decoded.sub,
+          email: updatedUserData.email,
+          role: updatedUserData.role,
+          username:
+            updatedUserData.username,
+        });
+
+        reply.setCookie(
+          'access_token',
+          token,
+          {
+            httpOnly: true,
+            sameSite: 'lax',
+            secure:
+              process.env.NODE_ENV ===
+              'production',
+            path: '/',
+            maxAge: 60 * 60 * 24 * 7,
+          },
+        );
+
+        return {
+          username:
+            updatedUser.username,
+        };
+      } catch {
+        return reply.code(401).send({
+          message:
+            'Érvénytelen vagy lejárt munkamenet.',
+        });
+      }
+    },
+  );
+  /*
    * LOGIN
    */
   app.post<{ Body: LoginBody }>(
@@ -108,9 +251,10 @@ export async function authRoutes(app: FastifyInstance) {
       }
 
       const token = await app.jwt.sign({
-        sub: user.id,
-        email: user.email,
-        role: user.role,
+          sub: user.id,
+          email: user.email,
+          role: user.role,
+          username: user.username,
       });
 
       reply.setCookie(

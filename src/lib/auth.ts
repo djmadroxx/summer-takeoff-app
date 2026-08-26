@@ -10,6 +10,7 @@ export interface User {
     token: number;
     role: Role;
     isActive: boolean;
+    createdAt: string;
 }
 
 

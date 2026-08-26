@@ -17,7 +17,6 @@ import {
 import { Html5Qrcode } from 'html5-qrcode';
 
 import { AnimatedBackground } from '../components/AnimatedBackground';
-import { BottomNav } from '../components/BottomNav';
 import { Logo } from '../components/Logo';
 
 import type { User } from '../lib/auth';
@@ -766,12 +765,7 @@ function scanAgain() {
           </section>
         )}
       </div>
-
-      <BottomNav
-        active="scanner"
-        user={user}
-        onScanner={onBack}
-      />
+      
     </main>
   );
 }

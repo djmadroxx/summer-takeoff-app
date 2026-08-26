@@ -8,6 +8,8 @@ import {
   isValidRole,
   type Role,
 } from '@summer-takeoff/shared';
+import { getRoleLabel } from '@summer-takeoff/shared';
+import { sendNotify } from './notification.service.js';
 
 interface LookupBody {
   qrToken: string;
@@ -26,6 +28,7 @@ interface JwtPayload {
   sub: string;
   email: string;
   role: Role;
+  username: string;
 }
 
 export async function scannerRoutes(
@@ -40,7 +43,7 @@ export async function scannerRoutes(
         const authUser =
           request.user as JwtPayload;
 
-        if (authUser.role !== 'admin') {
+        if (authUser.role !== 'admin' && authUser.role !== 'pultos') {
           return reply.code(403).send({
             message:
               'Nincs jogosultságod ehhez a művelethez.',
@@ -152,6 +155,11 @@ export async function scannerRoutes(
           });
         }
 
+        await sendNotify(
+          updatedUser.id,
+          'success',
+          'Megváltoztatták a szerepköröd! Mostantól ' +  getRoleLabel(updatedUser.role) + ' vagy.',
+        );
         return {
           userId: updatedUser.id,
           role: updatedUser.role,
@@ -223,6 +231,12 @@ export async function scannerRoutes(
               'A felhasználó nem található.',
           });
         }
+
+        await sendNotify(
+            updatedUser.id,
+            'success',
+            authUser.username + ' adott neked ' + amount + ' token-t. Mostantól ' + updatedUser.token + ' tokened van.'
+        );
 
         return {
           userId: updatedUser.id,

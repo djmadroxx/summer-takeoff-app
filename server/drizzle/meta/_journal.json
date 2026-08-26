@@ -22,6 +22,27 @@
       "when": 1787595141917,
       "tag": "0002_clammy_puff_adder",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1787752398098,
+      "tag": "0003_clear_supernaut",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1787752915190,
+      "tag": "0004_yummy_cobalt_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1787774442838,
+      "tag": "0005_superb_vargas",
+      "breakpoints": true
     }
   ]
 }

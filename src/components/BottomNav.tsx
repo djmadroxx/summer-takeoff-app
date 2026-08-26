@@ -9,72 +9,97 @@ import {
 
 import type { User } from '../lib/auth';
 
+export type NavigationPage =
+  | 'home'
+  | 'events'
+  | 'qr'
+  | 'scanner'
+  | 'shop'
+  | 'profile';
+
 interface BottomNavProps {
-  active:
-    | 'home'
-    | 'events'
-    | 'qr'
-    | 'scanner'
-    | 'shop'
-    | 'profile';
+  active: NavigationPage;
   user: User;
-  onScanner: () => void;
+  onNavigate: (page: NavigationPage) => void;
 }
+
+const navItems = [
+  {
+    id: 'home',
+    label: 'Kezdőlap',
+    icon: Home,
+  },
+  {
+    id: 'events',
+    label: 'Események',
+    icon: CalendarDays,
+  },
+  {
+    id: 'qr',
+    label: 'Saját QR',
+    icon: QrCode,
+  },
+  {
+    id: 'shop',
+    label: 'Shop',
+    icon: ShoppingBag,
+  },
+  {
+    id: 'profile',
+    label: 'Profil',
+    icon: UserRound,
+  },
+] as const;
 
 export function BottomNav({
   active,
   user,
-  onScanner,
+  onNavigate,
 }: BottomNavProps) {
   const isAdmin = user.role === 'admin';
   const isScanner = active === 'scanner';
-
-  const items = [
-    {
-      id: 'home',
-      label: 'Kezdőlap',
-      icon: Home,
-    },
-    {
-      id: 'events',
-      label: 'Események',
-      icon: CalendarDays,
-    },
-    {
-      id: 'qr',
-      label:
-        isAdmin && !isScanner
-          ? 'Scanner'
-          : 'Belépő',
-      icon:
-        isAdmin && !isScanner
-          ? ScanLine
-          : QrCode,
-    },
-    {
-      id: 'shop',
-      label: 'Shop',
-      icon: ShoppingBag,
-    },
-    {
-      id: 'profile',
-      label: 'Profil',
-      icon: UserRound,
-    },
-  ] as const;
 
   return (
     <nav
       className="bottom-nav"
       aria-label="Fő navigáció"
     >
-      {items.map(
-        ({ id, label, icon: Icon }) => {
-          const isActive =
-            id === 'qr'
-              ? active === 'qr' ||
-                active === 'scanner'
-              : active === id;
+      {navItems.map(
+        ({ id, label, icon: DefaultIcon }) => {
+          const isQrItem = id === 'qr';
+
+          const isActive = isQrItem
+            ? active === 'qr' ||
+              active === 'scanner'
+            : active === id;
+
+          const Icon =
+            isQrItem &&
+            isAdmin &&
+            !isScanner
+              ? ScanLine
+              : DefaultIcon;
+
+          const displayedLabel =
+            isQrItem &&
+            isAdmin &&
+            !isScanner
+              ? 'Scanner'
+              : label;
+
+          function handleClick() {
+          if (isQrItem && isAdmin) {
+            onNavigate(
+              isScanner
+                ? 'qr'
+                : 'scanner',
+            );
+
+            return;
+          }
+
+          onNavigate(id);
+        }
 
           return (
             <button
@@ -83,17 +108,16 @@ export function BottomNav({
               }`}
               key={id}
               type="button"
-              onClick={
-                id === 'qr' && isAdmin
-                  ? onScanner
-                  : undefined
-              }
+              onClick={handleClick}
             >
               <Icon
                 size={23}
                 strokeWidth={1.8}
               />
-              <span>{label}</span>
+
+              <span>
+                {displayedLabel}
+              </span>
             </button>
           );
         },

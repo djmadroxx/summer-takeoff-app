@@ -8,7 +8,8 @@
   "exports": {
     ".": {
       "types": "./dist/roles.d.ts",
-      "import": "./dist/roles.js"
+      "import": "./dist/roles.js",
+      "require": "./dist/roles.js"
     }
   },
   "scripts": {
