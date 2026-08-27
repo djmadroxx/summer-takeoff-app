@@ -97,7 +97,7 @@ export function QrPage({
               />
             </div>
 
-            <span className="status-pill">
+            <span className="status-pill-online">
               <span />
               AKTÍV
             </span>

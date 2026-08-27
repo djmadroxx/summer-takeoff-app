@@ -1,17 +1,16 @@
 import {
   CalendarDays,
   MapPin,
+  ArrowLeft,
 } from 'lucide-react';
 
 import { AnimatedBackground } from '../components/AnimatedBackground';
-import { BottomNav } from '../components/BottomNav';
 
 import type { User } from '../lib/auth';
-import type { NavigationPage } from '../components/BottomNav';
 
 interface EventsPageProps {
   user: User;
-  onNavigate: (page: NavigationPage) => void;
+  onBack: () => void;
 }
 
 const events = [
@@ -26,14 +25,20 @@ const events = [
 ];
 
 export function EventsPage({
-  user,
-  onNavigate,
+  onBack,
 }: EventsPageProps) {
   return (
     <main className="app-shell">
       <AnimatedBackground />
 
       <div className="app-container page-enter">
+        <button
+            className="shop-back-button"
+            type="button"
+            onClick={onBack}
+          >
+            <ArrowLeft size={19} />
+          </button>
         <header className="topbar">
           <div>
             <p className="muted-label">
@@ -98,12 +103,6 @@ export function EventsPage({
           </div>
         </section>
       </div>
-
-      <BottomNav
-        active="events"
-        user={user}
-        onNavigate={onNavigate}
-      />
     </main>
   );
 }

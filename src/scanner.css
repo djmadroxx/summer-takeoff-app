@@ -552,3 +552,131 @@
     width: calc(100vw - 24px);
   }
 }
+
+/* =========================================================
+   SCANNER — unified clean Shop visual language
+   ========================================================= */
+
+.scanner-card,
+.scanned-user-card {
+  border: 1px solid rgba(255,255,255,.075);
+  border-radius: 16px;
+  background: #111;
+  box-shadow: none;
+}
+
+.scanner-camera {
+  border-radius: 13px;
+  background: #050505;
+  box-shadow: none;
+}
+
+.scanner-error,
+.scanner-floating-error {
+  border-color: rgba(255,255,255,.08);
+  border-radius: 11px;
+  background: #151515;
+  box-shadow: none;
+  color: #bdbdbd;
+}
+
+.scanner-floating-error svg,
+.scanner-error svg {
+  color: #ddd;
+}
+
+.scanner-denied {
+  border: 1px solid rgba(255,255,255,.075);
+  border-radius: 16px;
+  background: #111;
+}
+
+.scanner-denied svg {
+  color: #ddd;
+}
+
+.scanned-success {
+  color: #ddd;
+}
+
+.scanned-success svg {
+  color: #fff;
+}
+
+.scanned-avatar {
+  border-color: rgba(255,255,255,.10);
+  border-radius: 13px;
+  background: #171717;
+  color: #ddd;
+}
+
+.scanned-details {
+  border-color: rgba(255,255,255,.07);
+  border-radius: 13px;
+  background: #171717;
+}
+
+.scanned-details > div {
+  background: #0f0f0f;
+}
+
+.scanner-again-button {
+  border-color: rgba(255,255,255,.10);
+  border-radius: 11px;
+  background: #171717;
+  color: #eee;
+  box-shadow: none;
+}
+
+.scanner-again-button:hover {
+  border-color: rgba(255,255,255,.18);
+  background: #1d1d1d;
+}
+
+.token-section {
+  border-color: rgba(255,255,255,.07);
+  border-radius: 15px;
+  background: #0f0f0f;
+  box-shadow: none;
+}
+
+.token-action {
+  border-color: rgba(255,255,255,.08);
+  border-radius: 11px;
+  background: #171717;
+  box-shadow: none;
+}
+
+.token-action-minus,
+.token-action-plus {
+  color: #ddd;
+  background: #171717;
+}
+
+.token-action-minus:hover:not(:disabled),
+.token-action-plus:hover:not(:disabled) {
+  border-color: rgba(255,255,255,.16);
+  background: #1e1e1e;
+}
+
+.token-input {
+  border-color: rgba(255,255,255,.09);
+  border-radius: 11px;
+  background: #0d0d0d;
+  box-shadow: none;
+}
+
+.token-input:focus {
+  border-color: rgba(255,255,255,.22);
+  background: #111;
+  box-shadow: 0 0 0 3px rgba(255,255,255,.04);
+}
+
+.token-input::placeholder {
+  color: #505050;
+}
+
+.token-header span,
+.token-unit {
+  color: #777;
+}

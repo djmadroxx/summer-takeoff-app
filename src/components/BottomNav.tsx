@@ -15,7 +15,9 @@ export type NavigationPage =
   | 'qr'
   | 'scanner'
   | 'shop'
-  | 'profile';
+  | 'profile'
+  | 'login' // kell, mert a login page is létező oldal, fuck yea
+  | 'register'; // kell, mert a register page is létező oldal, fuck yea
 
 interface BottomNavProps {
   active: NavigationPage;

@@ -260,7 +260,9 @@ function AppContent() {
       return (
         <EventsPage
           user={user}
-          onNavigate={setPage}
+          onBack={() =>
+            setPage('qr')
+          }
         />
       );
     }
@@ -403,7 +405,7 @@ function AppContent() {
                 ? 'shop'
                 : page === 'profile'
                   ? 'profile'
-                  : 'qr'
+                  : page
           }
           user={user}
           onNavigate={navigate}

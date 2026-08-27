@@ -187,7 +187,7 @@ export function LoginPage({
                   ? 'Jelszó elrejtése'
                   : 'Jelszó megjelenítése'
               }
-              className="icon-button"
+              className="aria-button"
               onClick={() =>
                 setShowPassword(
                   (value) => !value,
@@ -244,9 +244,7 @@ export function LoginPage({
           </button>
 
           <div className="auth-divider">
-            <span />
-            <small>VAGY</small>
-            <span />
+            <small className="auth-divider-text">VAGY</small>
           </div>
 
           <button
