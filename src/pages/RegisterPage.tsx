@@ -240,7 +240,7 @@ export function RegisterPage({
                   ? 'Jelszó elrejtése'
                   : 'Jelszó megjelenítése'
               }
-              className="icon-button"
+              className="button button-icon"
               onClick={() =>
                 setShowPassword(
                   (value) => !value,
@@ -292,7 +292,7 @@ export function RegisterPage({
                   ? 'Jelszó elrejtése'
                   : 'Jelszó megjelenítése'
               }
-              className="icon-button"
+              className="button button-icon"
               onClick={() =>
                 setShowPasswordAgain(
                   (value) => !value,
@@ -309,7 +309,7 @@ export function RegisterPage({
           </div>
 
           <button
-            className="primary-button"
+            className="button button-primary"
             disabled={isLoading}
             type="submit"
           >
@@ -325,7 +325,7 @@ export function RegisterPage({
           </button>
 
           <button
-            className="text-button"
+            className="button button-text"
             onClick={onBackToLogin}
             type="button"
           >

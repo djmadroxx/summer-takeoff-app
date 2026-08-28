@@ -5,7 +5,8 @@ import {
   CheckCircle2,
   Minus,
   Plus,
-  ScanLine
+  ScanLine,
+  Search,
 } from 'lucide-react';
 
 import {
@@ -17,6 +18,7 @@ import {
 import { Html5Qrcode } from 'html5-qrcode';
 
 import { AnimatedBackground } from '../components/AnimatedBackground';
+import { BottomNav } from '../components/BottomNav';
 import { Logo } from '../components/Logo';
 
 import type { User } from '../lib/auth';
@@ -39,7 +41,7 @@ interface ScannedUser {
   username: string;
   name: string;
   memberId: string;
-  role: 'user' | 'staff' | 'admin';
+  role: 'user' | 'staff' | 'admin' | 'pultos';
   isActive: boolean;
   token: number;
 }
@@ -48,49 +50,59 @@ export function ScannerPage({
   user,
   onBack,
 }: ScannerPageProps) {
-    const scannerRef =
-        useRef<Html5Qrcode | null>(null);
+  const scannerRef =
+    useRef<Html5Qrcode | null>(null);
 
-    const processingRef =
-        useRef(false);
+  const processingRef =
+    useRef(false);
 
-    const lastFailedQrRef =
-        useRef('');
+  const lastFailedQrRef =
+    useRef('');
 
-    const lastFailedAtRef =
-        useRef(0);
+  const lastFailedAtRef =
+    useRef(0);
 
-    const startedRef =
-        useRef(false);
+  const startedRef =
+    useRef(false);
 
-    const stoppingRef =
-        useRef(false);
+  const stoppingRef =
+    useRef(false);
 
-    
-    const [scannedUser, setScannedUser] =
-        useState<ScannedUser | null>(null);
+  const [scannedUser, setScannedUser] =
+    useState<ScannedUser | null>(null);
 
-    const [serverError, setServerError] =
-        useState('');
+  const [serverError, setServerError] =
+    useState('');
 
-    const [cameraError, setCameraError] =
-        useState('');
+  const [cameraError, setCameraError] =
+    useState('');
 
-    const [scanning, setScanning] =
-        useState(false);
+  const [scanning, setScanning] =
+    useState(false);
 
-     const [tokenAmount, setTokenAmount] =
-        useState('');
+  const [tokenAmount, setTokenAmount] =
+    useState('');
 
-    const [tokenLoading, setTokenLoading] =
-        useState(false);
+  const [tokenLoading, setTokenLoading] =
+    useState(false);
 
+  const [scannerSession, setScannerSession] =
+    useState(0);
 
-    const [scannerSession, setScannerSession] =
-        useState(0);
+  const [roleLoading, setRoleLoading] =
+    useState(false);
 
-    const [roleLoading, setRoleLoading] =
-      useState(false);
+  const [searchValue, setSearchValue] =
+    useState('');
+
+  const [searchLoading, setSearchLoading] =
+    useState(false);
+
+  /*
+   * ========================================================
+   * QR SCANNER
+   * ========================================================
+   */
 
   useEffect(() => {
     if (user.role !== 'admin') {
@@ -141,11 +153,11 @@ export function ScannerPage({
           {
             fps: 10,
             qrbox: {
-                width: 250,
-                height: 250,
+              width: 250,
+              height: 250,
             },
-            aspectRatio: 1
-        },
+            aspectRatio: 1,
+          },
           async (decodedText) => {
             if (
               processingRef.current ||
@@ -292,9 +304,130 @@ export function ScannerPage({
     };
   }, [user.role, scannerSession]);
 
+  /*
+   * ========================================================
+   * MANUAL USER SEARCH
+   * ========================================================
+   */
 
-  async function changeRole(role: Role) {
-    if (!scannedUser || roleLoading) {
+  async function searchUser() {
+    const identifier =
+      searchValue.trim();
+
+    if (!identifier) {
+      notify(
+        'error',
+        'Adj meg egy username-t vagy e-mail címet.',
+      );
+
+      return;
+    }
+
+    if (searchLoading) {
+      return;
+    }
+
+    setSearchLoading(true);
+    setServerError('');
+
+    try {
+      const response =
+        await fetch(
+          '/api/scanner/lookup',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type':
+                'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+              identifier,
+            }),
+          },
+        );
+
+      let data: {
+        message?: string;
+        user?: ScannedUser;
+      } = {};
+
+      try {
+        data =
+          await response.json();
+      } catch {
+        throw new Error(
+          'A szerver nem adott érvényes választ.',
+        );
+      }
+
+      if (!response.ok) {
+        throw new Error(
+          data.message ??
+            'A felhasználó keresése sikertelen.',
+        );
+      }
+
+      if (!data.user) {
+        throw new Error(
+          'Nem található ilyen felhasználó.',
+        );
+      }
+
+      await stopCurrentScanner();
+
+      setTokenAmount('');
+      setScannedUser(data.user);
+      setSearchValue('');
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Nem sikerült megtalálni a felhasználót.';
+
+      setServerError(message);
+
+      window.setTimeout(() => {
+        setServerError('');
+      }, 3000);
+    } finally {
+      setSearchLoading(false);
+    }
+  }
+
+  async function stopCurrentScanner() {
+    if (
+      scannerRef.current &&
+      startedRef.current &&
+      !stoppingRef.current
+    ) {
+      stoppingRef.current = true;
+
+      try {
+        await scannerRef.current.stop();
+      } catch {
+        // Scanner már leállhatott.
+      } finally {
+        startedRef.current = false;
+        stoppingRef.current = false;
+        setScanning(false);
+      }
+    }
+  }
+
+  /*
+   * ========================================================
+   * ROLE
+   * ========================================================
+   */
+
+  async function changeRole(
+    role: Role,
+  ) {
+    if (
+      !scannedUser ||
+      roleLoading
+    ) {
       return;
     }
 
@@ -305,22 +438,26 @@ export function ScannerPage({
     setRoleLoading(true);
 
     try {
-      const response = await fetch(
-        '/api/scanner/role',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
+      const response =
+        await fetch(
+          '/api/scanner/role',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type':
+                'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+              userId:
+                scannedUser.id,
+              role,
+            }),
           },
-          credentials: 'include',
-          body: JSON.stringify({
-            userId: scannedUser.id,
-            role,
-          }),
-        },
-      );
+        );
 
-      const data = await response.json();
+      const data =
+        await response.json();
 
       if (!response.ok) {
         throw new Error(
@@ -329,13 +466,14 @@ export function ScannerPage({
         );
       }
 
-      setScannedUser((current) =>
-        current
-          ? {
-              ...current,
-              role: data.role,
-            }
-          : current,
+      setScannedUser(
+        (current) =>
+          current
+            ? {
+                ...current,
+                role: data.role,
+              }
+            : current,
       );
 
       notify(
@@ -353,6 +491,12 @@ export function ScannerPage({
       setRoleLoading(false);
     }
   }
+
+  /*
+   * ========================================================
+   * TOKEN
+   * ========================================================
+   */
 
   async function changeToken(
     direction: 1 | -1,
@@ -379,21 +523,28 @@ export function ScannerPage({
       return;
     }
 
-    if(user.id === scannedUser.id) {
-      if(user.email === 'djmadroxx@icloud.com')
-      {
-          notify(
-            'error',
-            'Saját magadnak nem adhatsz vagy vonhatsz le tokeneket.',
-          );
-          notify('success', 'De mivel te vagy Mad, így neked szabad :P');
-      }
-      else
-      {
+    if (
+      user.id === scannedUser.id
+    ) {
+      if (
+        user.email ===
+        'djmadroxx@icloud.com'
+      ) {
         notify(
           'error',
           'Saját magadnak nem adhatsz vagy vonhatsz le tokeneket.',
         );
+
+        notify(
+          'success',
+          'De mivel te vagy Mad, így neked szabad :P',
+        );
+      } else {
+        notify(
+          'error',
+          'Saját magadnak nem adhatsz vagy vonhatsz le tokeneket.',
+        );
+
         return;
       }
     }
@@ -467,7 +618,8 @@ export function ScannerPage({
           current
             ? {
                 ...current,
-                token: data.token!,
+                token:
+                  data.token!,
               }
             : current,
       );
@@ -495,17 +647,34 @@ export function ScannerPage({
     }
   }
 
-function scanAgain() {
+  /*
+   * ========================================================
+   * SCAN AGAIN
+   * ========================================================
+   */
+
+  function scanAgain() {
     setScannedUser(null);
     setServerError('');
     setCameraError('');
     setTokenAmount('');
+    setSearchValue('');
+
     processingRef.current = false;
+
     lastFailedQrRef.current = '';
     lastFailedAtRef.current = 0;
 
-    setScannerSession((value) => value + 1);
-}
+    setScannerSession(
+      (value) => value + 1,
+    );
+  }
+
+  /*
+   * ========================================================
+   * ACCESS DENIED
+   * ========================================================
+   */
 
   if (user.role !== 'admin') {
     return (
@@ -525,7 +694,8 @@ function scanAgain() {
             </h1>
 
             <p>
-              Ez az oldal csak adminisztrátoroknak
+              Ez az oldal csak
+              adminisztrátoroknak
               érhető el.
             </p>
           </section>
@@ -533,6 +703,12 @@ function scanAgain() {
       </main>
     );
   }
+
+  /*
+   * ========================================================
+   * MAIN
+   * ========================================================
+   */
 
   return (
     <main className="app-shell">
@@ -543,7 +719,7 @@ function scanAgain() {
           <Logo />
 
           <button
-            className="logout-button"
+            className="button button-icon button-icon-square"
             type="button"
             onClick={onBack}
             aria-label="Vissza"
@@ -553,46 +729,110 @@ function scanAgain() {
         </header>
 
         {!scannedUser && (
-          <section className="scanner-card glass-card">
-            <div className="scanner-camera-wrapper">
-              {serverError && (
-                <div
-                  className="scanner-floating-error"
-                  role="alert"
-                >
-                  <AlertCircle size={18} />
+          <>
+            <section className="scanner-card glass-card">
+              <div className="scanner-camera-wrapper">
+                {serverError && (
+                  <div
+                    className="scanner-floating-error"
+                    role="alert"
+                  >
+                    <AlertCircle
+                      size={18}
+                    />
+
+                    <span>
+                      {serverError}
+                    </span>
+                  </div>
+                )}
+
+                <div className="scanner-camera">
+                  <div id="qr-reader" />
+                </div>
+              </div>
+
+              {scanning && (
+                <div className="scanner-status">
+                  <Camera size={18} />
 
                   <span>
-                    {serverError}
+                    Kamera aktív —
+                    keresés...
                   </span>
                 </div>
               )}
 
-              <div className="scanner-camera">
-                <div id="qr-reader" />
+              {cameraError && (
+                <div className="scanner-error">
+                  <AlertCircle
+                    size={18}
+                  />
+
+                  <span>
+                    {cameraError}
+                  </span>
+                </div>
+              )}
+            </section>
+
+            {/* ==================================================
+                MANUAL SEARCH
+               ================================================== */}
+
+            <section className="glass-card scanner-search-card">
+              <div className="search-field">
+                <Search size={20} />
+
+                <div>
+                  <h2>
+                    Felhasználó keresése
+                  </h2>
+
+                  <p>
+                    Username vagy e-mail cím alapján
+                  </p>
+                </div>
               </div>
-            </div>
 
-            {scanning && (
-              <div className="scanner-status">
-                <Camera size={18} />
+              <form
+                className="search-field search-field-form"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  void searchUser();
+                }}
+              >
+                <input
+                  className="search-field-input"
+                  type="search"
+                  value={searchValue}
+                  onChange={(event) =>
+                    setSearchValue(
+                      event.target.value,
+                    )
+                  }
+                  placeholder="username vagy email"
+                  autoComplete="off"
+                  disabled={searchLoading}
+                />
 
-                <span>
-                  Kamera aktív — keresés...
-                </span>
-              </div>
-            )}
+                <button
+                  className="button button-primary button-small"
+                  type="submit"
+                  disabled={
+                    searchLoading ||
+                    !searchValue.trim()
+                  }
+                >
+                  <Search size={18} />
 
-            {cameraError && (
-              <div className="scanner-error">
-                <AlertCircle size={18} />
-
-                <span>
-                  {cameraError}
-                </span>
-              </div>
-            )}
-          </section>
+                  {searchLoading
+                    ? 'Keresés...'
+                    : 'Keresés'}
+                </button>
+              </form>
+            </section>
+          </>
         )}
 
         {scannedUser && (
@@ -662,38 +902,50 @@ function scanAgain() {
                 </span>
 
                 <strong>
-                  { getRoleLabel(scannedUser.role) }
+                  {getRoleLabel(
+                    scannedUser.role,
+                  )}
                 </strong>
+
                 <select
-                  value={scannedUser.role}
+                  value={
+                    scannedUser.role
+                  }
                   onChange={(event) =>
                     void changeRole(
-                      event.target.value as Role,
+                      event.target
+                        .value as Role,
                     )
                   }
-                  disabled={roleLoading}
-                  className="role-select"
+                  disabled={
+                    roleLoading
+                  }
+                  className="form-control role-select"
                 >
-                  {ROLES.map((role) => (
-                    <option
-                      key={role}
-                      value={role}
-                    >
-                      {getRoleLabel(role)}
-                    </option>
-                  ))}
+                  {ROLES.map(
+                    (role) => (
+                      <option
+                        key={role}
+                        value={role}
+                      >
+                        {getRoleLabel(
+                          role,
+                        )}
+                      </option>
+                    ),
+                  )}
                 </select>
               </div>
-                <div>
-                    <span>
-                    TOKEN EGYENLEG
-                    </span>
 
-                    <strong>
-                    {scannedUser.token}
-                    </strong>
-                </div>
-              
+              <div>
+                <span>
+                  TOKEN EGYENLEG
+                </span>
+
+                <strong>
+                  {scannedUser.token}
+                </strong>
+              </div>
             </div>
 
             <div className="token-section">
@@ -708,9 +960,13 @@ function scanAgain() {
                   className="token-action token-action-minus"
                   type="button"
                   onClick={() =>
-                    void changeToken(-1)
+                    void changeToken(
+                      -1,
+                    )
                   }
-                  disabled={tokenLoading}
+                  disabled={
+                    tokenLoading
+                  }
                   aria-label="Token levonása"
                 >
                   <Minus size={20} />
@@ -727,10 +983,13 @@ function scanAgain() {
                     value={tokenAmount}
                     onChange={(event) =>
                       setTokenAmount(
-                        event.target.value,
+                        event.target
+                          .value,
                       )
                     }
-                    disabled={tokenLoading}
+                    disabled={
+                      tokenLoading
+                    }
                     aria-label="Token mennyiség"
                   />
 
@@ -743,9 +1002,13 @@ function scanAgain() {
                   className="token-action token-action-plus"
                   type="button"
                   onClick={() =>
-                    void changeToken(1)
+                    void changeToken(
+                      1,
+                    )
                   }
-                  disabled={tokenLoading}
+                  disabled={
+                    tokenLoading
+                  }
                   aria-label="Token hozzáadása"
                 >
                   <Plus size={20} />
@@ -754,7 +1017,7 @@ function scanAgain() {
             </div>
 
             <button
-              className="scanner-again-button"
+              className="button button-secondary button-wide"
               type="button"
               onClick={scanAgain}
             >
@@ -765,7 +1028,12 @@ function scanAgain() {
           </section>
         )}
       </div>
-      
+
+      <BottomNav
+        active="scanner"
+        user={user}
+        onNavigate={() => {}}
+      />
     </main>
   );
 }

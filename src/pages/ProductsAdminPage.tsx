@@ -404,6 +404,7 @@ export function ProductsAdminPage({
           <h1>Nincs hozzáférés</h1>
 
           <button
+            className="button button-secondary"
             type="button"
             onClick={onBack}
           >
@@ -419,6 +420,7 @@ export function ProductsAdminPage({
       <div className="app-container page-enter">
         <header className="products-admin-header">
           <button
+            className="button button-icon"
             type="button"
             onClick={onBack}
           >
@@ -466,6 +468,7 @@ export function ProductsAdminPage({
             </div>
 
             <button
+              className="button button-icon"
               type="button"
               onClick={() =>
                 setShowCategoryForm(
@@ -492,7 +495,7 @@ export function ProductsAdminPage({
                 createCategory
               }
             >
-              <input
+              <input className="form-control"
                 type="text"
                 placeholder="Kategória neve"
                 value={categoryName}
@@ -574,7 +577,7 @@ export function ProductsAdminPage({
                 TERMÉK NEVE
               </span>
 
-              <input
+              <input className="form-control"
                 type="text"
                 placeholder="Pl. Coca-Cola"
                 value={productName}
@@ -592,7 +595,7 @@ export function ProductsAdminPage({
                 TOKEN ÁR
               </span>
 
-              <input
+              <input className="form-control"
                 type="number"
                 min="1"
                 step="1"
@@ -611,7 +614,7 @@ export function ProductsAdminPage({
                 KATEGÓRIA
               </span>
 
-              <select
+              <select className="form-control"
                 value={categoryId}
                 onChange={(event) =>
                   setCategoryId(
@@ -650,7 +653,7 @@ export function ProductsAdminPage({
                 TERMÉKKÉP
               </span>
 
-              <label className="products-admin-upload-button">
+              <label className="button button-secondary button-wide">
                 <ImagePlus
                   size={20}
                 />
@@ -663,7 +666,7 @@ export function ProductsAdminPage({
                       : 'Kép feltöltése'}
                 </span>
 
-                <input
+                <input className="form-control"
                   type="file"
                   accept="image/png,image/jpeg,image/webp"
                   disabled={
@@ -694,6 +697,7 @@ export function ProductsAdminPage({
                   />
 
                   <button
+                    className="button button-icon"
                     type="button"
                     onClick={() =>
                       setImagePath(
@@ -708,7 +712,7 @@ export function ProductsAdminPage({
             </div>
 
             <button
-              className="products-admin-submit"
+              className="button button-primary"
               type="submit"
               disabled={
                 savingProduct ||

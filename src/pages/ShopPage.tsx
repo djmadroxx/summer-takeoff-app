@@ -659,7 +659,7 @@ export function ShopPage({
       <div className="app-container page-enter">
         <header className="shop-header">
           <button
-            className="shop-back-button"
+            className="button button-icon button-icon-square"
             type="button"
             onClick={onBack}
           >
@@ -676,7 +676,7 @@ export function ShopPage({
 
           {isStaff ? (
             <button
-              className="shop-cart-button"
+              className="button button-icon"
               type="button"
               onClick={() =>
                 setCartOpen(true)
@@ -694,7 +694,7 @@ export function ShopPage({
             </button>
           ) : isAdmin ? (
             <button
-              className="shop-admin-button"
+              className="button button-secondary"
               type="button"
               onClick={
                 onOpenProductsAdmin
@@ -729,10 +729,11 @@ export function ShopPage({
           !error &&
           products.length > 0 && (
             <>
-              <div className="shop-search">
+              <div className="search-field">
                 <Search size={19} />
 
                 <input
+                  className="search-field-input"
                   type="search"
                   placeholder="Termék keresése..."
                   value={search}
@@ -746,12 +747,12 @@ export function ShopPage({
 
               <div className="shop-categories">
                 <button
-                  className={
+                  className={`button button-chip ${
                     selectedCategory ===
                     'all'
                       ? 'active'
                       : ''
-                  }
+                  }`}
                   type="button"
                   onClick={() =>
                     setSelectedCategory(
@@ -765,12 +766,12 @@ export function ShopPage({
                 {categories.map(
                   (category) => (
                     <button
-                      className={
+                      className={`button button-chip ${
                         selectedCategory ===
                         category
                           ? 'active'
                           : ''
-                      }
+                      }`}
                       key={category}
                       type="button"
                       onClick={() =>
@@ -800,6 +801,7 @@ export function ShopPage({
             <p>{error}</p>
 
             <button
+              className="button button-secondary"
               type="button"
               onClick={() =>
                 window.location.reload()
@@ -888,7 +890,7 @@ export function ShopPage({
 
                         {isStaff && (
                           <button
-                            className="shop-add-button"
+                            className="button button-secondary button-small"
                             type="button"
                             onClick={() =>
                               addToCart(
@@ -938,6 +940,7 @@ export function ShopPage({
                 </div>
 
                 <button
+                  className="button button-icon"
                   type="button"
                   onClick={() =>
                     setCartOpen(false)
@@ -989,6 +992,7 @@ export function ShopPage({
 
                           <div className="shop-cart-item-actions">
                             <button
+                              className="button button-icon"
                               type="button"
                               onClick={() =>
                                 changeQuantity(
@@ -1011,6 +1015,7 @@ export function ShopPage({
                             </strong>
 
                             <button
+                              className="button button-icon"
                               type="button"
                               onClick={() =>
                                 changeQuantity(
@@ -1027,6 +1032,7 @@ export function ShopPage({
                             </button>
 
                             <button
+                              className="button button-icon"
                               type="button"
                               onClick={() =>
                                 removeFromCart(
@@ -1097,6 +1103,7 @@ export function ShopPage({
                         </div>
 
                         <button
+                          className="button button-secondary button-small"
                           type="button"
                           onClick={
                             clearCustomer
@@ -1107,6 +1114,7 @@ export function ShopPage({
                       </div>
                     ) : (
                       <button
+                        className="button button-secondary"
                         type="button"
                         onClick={
                           openCustomerScanner
@@ -1125,7 +1133,7 @@ export function ShopPage({
                         cartTotal && (
                         <div className="shop-payment-ready">
                           <button
-                            className="shop-payment-button"
+                            className="button button-primary button-wide"
                             type="button"
                             onClick={() =>
                               void handlePayment()
@@ -1150,7 +1158,7 @@ export function ShopPage({
                         cartTotal && (
                         <div className="shop-payment-error">
                           <button
-                            className="shop-payment-button"
+                            className="button button-danger button-wide"
                             type="button"
                             disabled
                           >
@@ -1185,6 +1193,7 @@ export function ShopPage({
                 </div>
 
                 <button
+                  className="button button-icon"
                   type="button"
                   onClick={() =>
                     void closeCustomerScanner()

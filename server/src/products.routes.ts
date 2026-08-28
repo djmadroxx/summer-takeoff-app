@@ -23,6 +23,8 @@ import {
 } from './db/schema.js';
 import type { Role } from '@summer-takeoff/shared';
 
+import { sendNotify } from './notification.service.js';
+
 interface JwtPayload {
   sub: string;
   email: string;
@@ -845,6 +847,8 @@ export async function productsRoutes(
                     'Termékvásárlás',
                 });
 
+                await sendNotify(customer.id, 'success', 'Sikeres vásárlás! ' + 'Sikeresen levontunk ' + result.totalToken + ' tokent a vásárlásodért. A vásárlás részleteit a "Vásárlások" menüpontban találod.');
+                
                 return {
                 orderId: order.id,
                 totalToken,
@@ -855,12 +859,12 @@ export async function productsRoutes(
                     customer.name,
                 };
             },
-            );
+          );
 
-        return reply.code(201).send({
-            success: true,
-            ...result,
-        });
+          return reply.code(201).send({
+              success: true,
+              ...result,
+          });
         } catch (error) {
         if (
             error instanceof Error

@@ -1,4 +1,9 @@
 import {
+  useEffect,
+  useState,
+} from 'react';
+
+import {
   Copy,
   LogOut,
   ShieldCheck,
@@ -13,6 +18,7 @@ import {
 } from '@summer-takeoff/shared';
 
 import { AnimatedBackground } from '../components/AnimatedBackground';
+import { BottomNav } from '../components/BottomNav';
 import { Logo } from '../components/Logo';
 
 import type { User } from '../lib/auth';
@@ -20,22 +26,179 @@ import type { User } from '../lib/auth';
 interface QrPageProps {
   user: User;
   onLogout: () => void;
+  onOpenScanner?: () => void;
+}
+
+interface DynamicQrResponse {
+  qr: string;
+  expiresAt: number;
 }
 
 export function QrPage({
   user,
   onLogout,
 }: QrPageProps) {
+  const [qrValue, setQrValue] =
+    useState('');
+
+  const [expiresAt, setExpiresAt] =
+    useState<number | null>(null);
+
+  const [secondsLeft, setSecondsLeft] =
+    useState(0);
+
+  const [qrError, setQrError] =
+    useState('');
+
   /*
-   * Ez a QR kizárólag a felhasználó
-   * azonosítására szolgál.
-   *
-   * A QR-ben csak az egyedi qrToken van.
-   *
-   * Nem tartalmaz ticketet,
-   * egyenleget vagy egyéb változó adatot.
+   * ========================================================
+   * DINAMIKUS QR LEKÉRÉSE
+   * ========================================================
    */
-  const qrValue = user.qrToken;
+
+  async function loadQr() {
+    try {
+      setQrError('');
+
+      const response =
+        await fetch(
+          '/api/scanner/qr',
+          {
+            method: 'GET',
+            credentials: 'include',
+          },
+        );
+
+      const data =
+        (await response.json()) as
+          | DynamicQrResponse
+          | { message?: string };
+
+      if (!response.ok) {
+        throw new Error(
+          'message' in data &&
+          data.message
+            ? data.message
+            : 'Nem sikerült betölteni a QR-kódot.',
+        );
+      }
+
+      const qrData =
+        data as DynamicQrResponse;
+
+      setQrValue(qrData.qr);
+      setExpiresAt(
+        qrData.expiresAt,
+      );
+
+      setSecondsLeft(
+        Math.max(
+          0,
+          qrData.expiresAt -
+            Math.floor(
+              Date.now() / 1000,
+            ),
+        ),
+      );
+    } catch (error) {
+      setQrError(
+        error instanceof Error
+          ? error.message
+          : 'Nem sikerült betölteni a QR-kódot.',
+      );
+    }
+  }
+
+  /*
+   * ========================================================
+   * ELSŐ QR
+   * ========================================================
+   */
+
+  useEffect(() => {
+    void loadQr();
+  }, []);
+
+  /*
+   * ========================================================
+   * VISSZASZÁMLÁLÁS
+   * ========================================================
+   */
+
+  useEffect(() => {
+    if (!expiresAt) {
+      return;
+    }
+
+    const updateCountdown =
+      () => {
+        const remaining =
+          Math.max(
+            0,
+            expiresAt -
+              Math.floor(
+                Date.now() /
+                  1000,
+              ),
+          );
+
+        setSecondsLeft(
+          remaining,
+        );
+
+        if (remaining <= 0) {
+          void loadQr();
+        }
+      };
+
+    updateCountdown();
+
+    const interval =
+      window.setInterval(
+        updateCountdown,
+        1000,
+      );
+
+    return () => {
+      window.clearInterval(
+        interval,
+      );
+    };
+  }, [expiresAt]);
+
+  /*
+   * ========================================================
+   * QR FRISSÍTÉSE BIZTONSÁGI TARTALÉKKAL
+   * ========================================================
+   *
+   * Ha valamiért a timer pontosan lejár,
+   * az új QR automatikusan lekérésre kerül.
+   */
+
+  useEffect(() => {
+    if (!expiresAt) {
+      return;
+    }
+
+    const refreshTimer =
+      window.setTimeout(
+        () => {
+          void loadQr();
+        },
+        Math.max(
+          1000,
+          expiresAt * 1000 -
+            Date.now() +
+            250,
+        ),
+      );
+
+    return () => {
+      window.clearTimeout(
+        refreshTimer,
+      );
+    };
+  }, [expiresAt]);
 
   async function copyId() {
     try {
@@ -47,6 +210,14 @@ export function QrPage({
     }
   }
 
+  const formattedTime =
+    `00:${String(
+      Math.max(
+        0,
+        secondsLeft,
+      ),
+    ).padStart(2, '0')}`;
+
   return (
     <main className="app-shell">
       <AnimatedBackground />
@@ -56,7 +227,7 @@ export function QrPage({
           <Logo />
 
           <button
-            className="logout-button"
+            className="button button-icon button-icon-square"
             onClick={onLogout}
             type="button"
             aria-label="Kijelentkezés"
@@ -97,7 +268,7 @@ export function QrPage({
               />
             </div>
 
-            <span className="status-pill-online">
+            <span className="status-pill">
               <span />
               AKTÍV
             </span>
@@ -105,7 +276,9 @@ export function QrPage({
 
           <div className="ticket-title">
             <h2>
-              {getRoleLabel(user.role)}
+              {getRoleLabel(
+                user.role,
+              )}
             </h2>
           </div>
 
@@ -113,14 +286,36 @@ export function QrPage({
             <div className="qr-glow" />
 
             <div className="qr-frame">
-              <QRCodeSVG
-                bgColor="#ffffff"
-                fgColor="#050505"
-                includeMargin
-                level="M"
-                size={128}
-                value={qrValue}
-              />
+              {qrValue ? (
+                <QRCodeSVG
+                  bgColor="#ffffff"
+                  fgColor="#050505"
+                  includeMargin
+                  level="M"
+                  size={128}
+                  value={qrValue}
+                />
+              ) : (
+                <div
+                  style={{
+                    width: 128,
+                    height: 128,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent:
+                      'center',
+                    background:
+                      '#ffffff',
+                    color: '#050505',
+                    fontSize: 12,
+                    textAlign:
+                      'center',
+                    padding: 12,
+                  }}
+                >
+                  QR betöltése...
+                </div>
+              )}
 
               <div className="scan-line" />
             </div>
@@ -130,10 +325,41 @@ export function QrPage({
             <ShieldCheck size={17} />
 
             <span>
-              Ez a QR-kód az egyedi
-              felhasználói azonosítód.
+              A QR-kód biztonsági okokból
+              rendszeresen megújul.
             </span>
           </div>
+
+          <div
+            className="qr-caption"
+            style={{
+              justifyContent:
+                'center',
+              marginTop: 10,
+            }}
+          >
+            <span>
+              ÉRVÉNYES MÉG{' '}
+              <strong>
+                {formattedTime}
+              </strong>
+            </span>
+          </div>
+
+          {qrError && (
+            <div
+              className="qr-caption"
+              style={{
+                justifyContent:
+                  'center',
+                marginTop: 10,
+              }}
+            >
+              <span>
+                {qrError}
+              </span>
+            </div>
+          )}
 
           <div className="ticket-divider" />
 
@@ -159,10 +385,17 @@ export function QrPage({
         </section>
 
         <p className="footer-note">
-          A QR-kódod egyedi és állandó.
-          Ne oszd meg másokkal.
+          A QR-kódod 60 másodpercenként
+          automatikusan megújul. Ne oszd meg
+          másokkal.
         </p>
       </div>
+
+      <BottomNav
+        active="qr"
+        user={user}
+        onNavigate={() => {}}
+      />
     </main>
   );
 }

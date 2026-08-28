@@ -36,7 +36,9 @@ export async function notificationRoutes(
           user.sub,
           socket,
         );
-      } catch (error) {
+      } 
+      catch (error) 
+      {
         app.log.error(
           error,
           'Notification WebSocket authentication failed',

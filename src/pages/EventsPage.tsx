@@ -33,7 +33,7 @@ export function EventsPage({
 
       <div className="app-container page-enter">
         <button
-            className="shop-back-button"
+            className="button button-icon button-icon-square"
             type="button"
             onClick={onBack}
           >
@@ -92,7 +92,7 @@ export function EventsPage({
                   </p>
 
                   <button
-                    className="secondary-button event-button"
+                    className="button button-secondary event-button"
                     type="button"
                   >
                     Részletek

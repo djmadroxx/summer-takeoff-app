@@ -187,7 +187,7 @@ export function LoginPage({
                   ? 'Jelszó elrejtése'
                   : 'Jelszó megjelenítése'
               }
-              className="aria-button"
+              className="button button-icon form-icon-button"
               onClick={() =>
                 setShowPassword(
                   (value) => !value,
@@ -221,7 +221,7 @@ export function LoginPage({
           </label>
 
           <button
-            className="primary-button"
+            className="button button-primary"
             disabled={isLoading}
             type="submit"
           >
@@ -237,7 +237,7 @@ export function LoginPage({
           </button>
 
           <button
-            className="text-button"
+            className="button button-text"
             type="button"
           >
             Elfelejtetted a jelszavad?
@@ -248,7 +248,7 @@ export function LoginPage({
           </div>
 
           <button
-            className="text-button register-link"
+            className="button button-text register-link"
             onClick={onRegister}
             type="button"
           >

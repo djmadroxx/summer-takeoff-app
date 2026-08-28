@@ -126,7 +126,7 @@ export function ProfilePage({
       <div className="app-container page-enter">
         <header className="topbar profile-topbar">
           <button
-            className="icon-button"
+            className="button button-icon"
             type="button"
             onClick={onBack}
             aria-label="Vissza"
@@ -227,7 +227,7 @@ export function ProfilePage({
               </div>
 
               <button
-                className="primary-button"
+                className="button button-primary"
                 type="button"
                 onClick={
                   handleUsernameSave

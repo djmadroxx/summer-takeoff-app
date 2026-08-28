@@ -27,7 +27,6 @@ import {
 } from './lib/auth';
 
 import './styles.css';
-import './scanner.css';
 
 import type {
   NavigationPage,

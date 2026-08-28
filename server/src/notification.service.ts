@@ -119,9 +119,10 @@ export async function sendNotify(
          * WebSocket.OPEN = 1
          */
         if (socket.readyState === 1) {
-          socket.send(payload);
+            socket.send(payload);
         }
-      } catch {
+      } 
+      catch {
         /*
          * Egy hibás kapcsolat ne akadályozza
          * a többi eszköz értesítését.
