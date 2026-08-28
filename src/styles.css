@@ -2832,7 +2832,10 @@ body {
     linear-gradient(180deg, #0a0a0a 0%, #080808 55%, #070707 100%);
   color: var(--text);
 }
-
+#root {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
 /* Background: keep the component for functionality, remove visual noise. */
 .ambient {
   background: #080808;
