@@ -16,6 +16,7 @@ export type NavigationPage =
   | 'scanner'
   | 'shop'
   | 'profile'
+  | 'products-admin'
   | 'login' // kell, mert a login page is létező oldal, fuck yea
   | 'register'; // kell, mert a register page is létező oldal, fuck yea
 
@@ -58,7 +59,7 @@ export function BottomNav({
   user,
   onNavigate,
 }: BottomNavProps) {
-  const isAdmin = user.role === 'admin';
+  const isStaff = user.role === 'admin';
   const isScanner = active === 'scanner';
 
   return (
@@ -77,20 +78,20 @@ export function BottomNav({
 
           const Icon =
             isQrItem &&
-            isAdmin &&
+            isStaff &&
             !isScanner
               ? ScanLine
               : DefaultIcon;
 
           const displayedLabel =
             isQrItem &&
-            isAdmin &&
+            isStaff &&
             !isScanner
               ? 'Scanner'
               : label;
 
           function handleClick() {
-          if (isQrItem && isAdmin) {
+          if (isQrItem && isStaff) {
             onNavigate(
               isScanner
                 ? 'qr'

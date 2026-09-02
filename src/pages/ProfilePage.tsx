@@ -1,8 +1,36 @@
-import { useState } from 'react';
-import { ArrowLeft, UserRound } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { ArrowLeft, Coins, History, ShoppingBag, UserRound } from 'lucide-react';
 
 import type { User } from '../lib/auth';
 import { notify } from '../lib/notifications';
+
+
+interface ActivityResponse {
+  transactions: Array<{
+    id: string;
+    type: 'add' | 'remove' | 'purchase';
+    amount: number;
+    description: string | null;
+    createdAt: string;
+    orderId: string | null;
+  }>;
+  purchases: Array<{
+    orderId: string;
+    totalToken: number;
+    status: string;
+    createdAt: string;
+    productName: string;
+    quantity: number;
+    unitTokenPrice: number;
+  }>;
+}
+
+function formatActivityDate(value: string) {
+  return new Date(value).toLocaleString('hu-HU', {
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit',
+  });
+}
 
 interface ProfilePageProps {
   user: User;
@@ -20,6 +48,28 @@ export function ProfilePage({
   );
 
   const [saving, setSaving] = useState(false);
+  const [activity, setActivity] = useState<ActivityResponse | null>(null);
+  const [activityLoading, setActivityLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadActivity() {
+      try {
+        const response = await fetch('/api/activity/history', {
+          credentials: 'include',
+        });
+        if (!response.ok) return;
+        const data = (await response.json()) as ActivityResponse;
+        if (!cancelled) setActivity(data);
+      } finally {
+        if (!cancelled) setActivityLoading(false);
+      }
+    }
+
+    void loadActivity();
+    return () => { cancelled = true; };
+  }, []);
 
   async function handleUsernameSave() {
     const normalizedUsername =
@@ -238,6 +288,70 @@ export function ProfilePage({
                   ? 'Mentés...'
                   : 'Mentés'}
               </button>
+            </div>
+          </div>
+
+          <div className="profile-card glass-card">
+            <div className="profile-card-header">
+              <div>
+                <span className="muted-label">ELŐZMÉNYEK</span>
+                <h2>Tokenmozgások</h2>
+              </div>
+              <History size={22} />
+            </div>
+
+            <div className="profile-activity-list">
+              {activityLoading && (
+                <div className="activity-empty">Előzmények betöltése...</div>
+              )}
+
+              {!activityLoading && !activity?.transactions.length && (
+                <div className="activity-empty">Még nincs tokenmozgás.</div>
+              )}
+
+              {activity?.transactions.slice(0, 15).map((item) => (
+                <div className="profile-activity-row" key={item.id}>
+                  <div className="profile-activity-icon">
+                    <Coins size={16} />
+                  </div>
+                  <div>
+                    <strong>{item.description || 'Token tranzakció'}</strong>
+                    <span>{formatActivityDate(item.createdAt)}</span>
+                  </div>
+                  <b className={item.amount >= 0 ? 'positive' : 'negative'}>
+                    {item.amount > 0 ? '+' : ''}{item.amount}
+                  </b>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="profile-card glass-card">
+            <div className="profile-card-header">
+              <div>
+                <span className="muted-label">SHOP</span>
+                <h2>Vásárlási előzmények</h2>
+              </div>
+              <ShoppingBag size={22} />
+            </div>
+
+            <div className="profile-activity-list">
+              {!activityLoading && !activity?.purchases.length && (
+                <div className="activity-empty">Még nincs vásárlási előzmény.</div>
+              )}
+
+              {activity?.purchases.slice(0, 15).map((item) => (
+                <div className="profile-activity-row" key={`${item.orderId}-${item.productName}`}>
+                  <div className="profile-activity-icon">
+                    <ShoppingBag size={16} />
+                  </div>
+                  <div>
+                    <strong>{item.productName}{item.quantity > 1 ? ` × ${item.quantity}` : ''}</strong>
+                    <span>{formatActivityDate(item.createdAt)}</span>
+                  </div>
+                  <b className="negative">−{item.unitTokenPrice * item.quantity}</b>
+                </div>
+              ))}
             </div>
           </div>
         </section>

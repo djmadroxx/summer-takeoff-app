@@ -18,7 +18,6 @@ import {
 import { Html5Qrcode } from 'html5-qrcode';
 
 import { AnimatedBackground } from '../components/AnimatedBackground';
-import { BottomNav } from '../components/BottomNav';
 import { Logo } from '../components/Logo';
 
 import type { User } from '../lib/auth';
@@ -92,6 +91,9 @@ export function ScannerPage({
   const [roleLoading, setRoleLoading] =
     useState(false);
 
+  const [roleMenuOpen, setRoleMenuOpen] =
+    useState(false);
+
   const [searchValue, setSearchValue] =
     useState('');
 
@@ -105,7 +107,7 @@ export function ScannerPage({
    */
 
   useEffect(() => {
-    if (user.role !== 'admin') {
+    if (user.role !== 'admin' && user.role !== 'pultos') {
       return;
     }
 
@@ -156,7 +158,6 @@ export function ScannerPage({
               width: 250,
               height: 250,
             },
-            aspectRatio: 1,
           },
           async (decodedText) => {
             if (
@@ -676,7 +677,7 @@ export function ScannerPage({
    * ========================================================
    */
 
-  if (user.role !== 'admin') {
+  if (user.role !== 'admin' && user.role !== 'pultos') {
     return (
       <main className="app-shell">
         <AnimatedBackground />
@@ -695,7 +696,7 @@ export function ScannerPage({
 
             <p>
               Ez az oldal csak
-              adminisztrátoroknak
+              pultosoknak és adminisztrátoroknak
               érhető el.
             </p>
           </section>
@@ -907,34 +908,38 @@ export function ScannerPage({
                   )}
                 </strong>
 
-                <select
-                  value={
-                    scannedUser.role
-                  }
-                  onChange={(event) =>
-                    void changeRole(
-                      event.target
-                        .value as Role,
-                    )
-                  }
-                  disabled={
-                    roleLoading
-                  }
-                  className="form-control role-select"
-                >
-                  {ROLES.map(
-                    (role) => (
-                      <option
-                        key={role}
-                        value={role}
-                      >
-                        {getRoleLabel(
-                          role,
-                        )}
-                      </option>
-                    ),
+                <div className="custom-role-select">
+                  <button
+                    type="button"
+                    className="custom-role-trigger"
+                    disabled={roleLoading}
+                    onClick={() => setRoleMenuOpen((open) => !open)}
+                    aria-haspopup="listbox"
+                    aria-expanded={roleMenuOpen}
+                  >
+                    <span>{getRoleLabel(scannedUser.role)}</span>
+                    <span className={`custom-role-chevron ${roleMenuOpen ? 'open' : ''}`}>⌄</span>
+                  </button>
+
+                  {roleMenuOpen && (
+                    <div className="custom-role-menu" role="listbox">
+                      {ROLES.map((role) => (
+                        <button
+                          key={role}
+                          type="button"
+                          className={`custom-role-option ${role === scannedUser.role ? 'selected' : ''}`}
+                          onClick={() => {
+                            setRoleMenuOpen(false);
+                            void changeRole(role);
+                          }}
+                        >
+                          <span>{getRoleLabel(role)}</span>
+                          {role === scannedUser.role && <span>✓</span>}
+                        </button>
+                      ))}
+                    </div>
                   )}
-                </select>
+                </div>
               </div>
 
               <div>
@@ -1028,12 +1033,6 @@ export function ScannerPage({
           </section>
         )}
       </div>
-
-      <BottomNav
-        active="scanner"
-        user={user}
-        onNavigate={() => {}}
-      />
     </main>
   );
 }

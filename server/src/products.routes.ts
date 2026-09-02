@@ -847,7 +847,7 @@ export async function productsRoutes(
                     'Termékvásárlás',
                 });
 
-                await sendNotify(customer.id, 'success', 'Sikeres vásárlás! ' + 'Sikeresen levontunk ' + result.totalToken + ' tokent a vásárlásodért. A vásárlás részleteit a "Vásárlások" menüpontban találod.');
+                await sendNotify(customer.id, 'success', 'Sikeres vásárlás! ' + 'Sikeresen levontunk ' + totalToken + ' tokent a vásárlásodért.');
                 
                 return {
                 orderId: order.id,

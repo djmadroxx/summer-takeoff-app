@@ -220,21 +220,22 @@ export function LoginPage({
             </span>
           </label>
 
-          <button
-            className="button button-primary"
-            disabled={isLoading}
-            type="submit"
-          >
-            <span>
-              {isLoading
-                ? 'Beléptetés…'
-                : 'BEJELENTKEZÉS'}
-            </span>
+            <button
+              className="button button-primary button-wide"
+              disabled={isLoading}
+              type="submit"
+            >
+              <span>
+                {isLoading
+                  ? 'Beléptetés…'
+                  : 'BEJELENTKEZÉS'}
+              </span>
 
-            {!isLoading && (
-              <ArrowRight size={21} />
-            )}
-          </button>
+              {!isLoading && (
+                <ArrowRight size={21} />
+              )}
+            </button>
+          
 
           <button
             className="button button-text"

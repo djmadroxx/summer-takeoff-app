@@ -4837,3 +4837,488 @@ svg {
   min-height: 32px;
   border-radius: 9px;
 }
+
+/* =========================================================
+   DASHBOARD / ACTIVITY
+   ========================================================= */
+
+.dashboard-topbar h1 {
+  margin: 3px 0 0;
+}
+
+.dashboard-welcome {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 22px;
+  margin-bottom: 24px;
+}
+
+.dashboard-welcome h2 {
+  margin: 6px 0 6px;
+  font-size: 24px;
+}
+
+.dashboard-welcome p {
+  margin: 0;
+  color: var(--text-muted, #9c9c9c);
+  font-size: 13px;
+}
+
+.dashboard-eyebrow {
+  color: var(--accent, #d9ff38);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .14em;
+}
+
+.dashboard-token-balance {
+  min-width: 105px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.dashboard-token-balance svg {
+  color: var(--accent, #d9ff38);
+}
+
+.dashboard-token-balance strong {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.dashboard-token-balance span {
+  color: var(--text-muted, #9c9c9c);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+}
+
+.dashboard-section {
+  margin-bottom: 26px;
+}
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 2px 12px;
+}
+
+.section-heading h2 {
+  margin: 3px 0 0;
+  font-size: 18px;
+}
+
+.section-heading > svg {
+  color: var(--accent, #d9ff38);
+}
+
+.dashboard-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.dashboard-stat-card {
+  min-width: 0;
+  padding: 15px;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 18px;
+  background: rgba(255,255,255,.035);
+  box-shadow: 0 10px 30px rgba(0,0,0,.14);
+}
+
+.dashboard-stat-icon {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 13px;
+  border-radius: 11px;
+  background: rgba(217,255,56,.09);
+  color: var(--accent, #d9ff38);
+}
+
+.dashboard-stat-card span {
+  display: block;
+  color: var(--text-muted, #9c9c9c);
+  font-size: 11px;
+  margin-bottom: 5px;
+}
+
+.dashboard-stat-card strong {
+  font-size: 18px;
+}
+
+.dashboard-actions {
+  display: grid;
+  gap: 9px;
+}
+
+.dashboard-action-card {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 28px 1fr 18px;
+  align-items: center;
+  gap: 12px;
+  padding: 15px 16px;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 17px;
+  background: rgba(255,255,255,.035);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: transform .18s ease, border-color .18s ease, background .18s ease;
+}
+
+.dashboard-action-card:hover {
+  transform: translateY(-1px);
+  border-color: rgba(217,255,56,.3);
+  background: rgba(217,255,56,.055);
+}
+
+.dashboard-action-card > svg:first-child {
+  color: var(--accent, #d9ff38);
+}
+
+.dashboard-action-card > svg:last-child {
+  color: #777;
+}
+
+.dashboard-action-card span {
+  min-width: 0;
+}
+
+.dashboard-action-card strong,
+.dashboard-action-card small {
+  display: block;
+}
+
+.dashboard-action-card strong {
+  font-size: 14px;
+  margin-bottom: 3px;
+}
+
+.dashboard-action-card small {
+  color: var(--text-muted, #9c9c9c);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.activity-list {
+  overflow: hidden;
+  padding: 0;
+}
+
+.activity-row {
+  display: grid;
+  grid-template-columns: 34px minmax(0,1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 13px 14px;
+  border-bottom: 1px solid rgba(255,255,255,.055);
+}
+
+.activity-row:last-child {
+  border-bottom: 0;
+}
+
+.activity-icon,
+.profile-activity-icon {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: rgba(217,255,56,.08);
+  color: var(--accent, #d9ff38);
+}
+
+.activity-icon.negative {
+  color: #ff7b7b;
+  background: rgba(255,90,90,.08);
+}
+
+.activity-icon.purchase {
+  color: #b9a8ff;
+  background: rgba(140,110,255,.1);
+}
+
+.activity-main {
+  min-width: 0;
+}
+
+.activity-main strong,
+.activity-main span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.activity-main strong {
+  font-size: 12px;
+}
+
+.activity-main span {
+  color: var(--text-muted, #9c9c9c);
+  font-size: 10px;
+  margin-top: 2px;
+}
+
+.activity-amount {
+  font-weight: 800;
+  font-size: 13px;
+  align-self: start;
+}
+
+.activity-row time {
+  display: none;
+}
+
+.positive {
+  color: var(--accent, #d9ff38);
+}
+
+.negative {
+  color: #ff8585;
+}
+
+.activity-empty {
+  padding: 24px 16px;
+  text-align: center;
+  color: var(--text-muted, #9c9c9c);
+  font-size: 12px;
+}
+
+/* =========================================================
+   QR CARD – SIMPLIFIED
+   ========================================================= */
+
+.qr-stage-large {
+  padding: 22px 0 20px;
+}
+
+.qr-frame-large {
+  width: 218px;
+  height: 218px;
+  padding: 9px;
+}
+
+.qr-frame-large svg {
+  width: 190px;
+  height: 190px;
+  display: block;
+}
+
+.ticket-title p {
+  margin: 5px 0 0;
+  color: var(--text-muted, #9c9c9c);
+  font-size: 12px;
+}
+
+.qr-loading {
+  width: 190px;
+  height: 190px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  color: #111;
+  font-size: 12px;
+}
+
+.qr-validity {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 1px;
+}
+
+.qr-validity span {
+  color: var(--text-muted, #9c9c9c);
+  font-size: 9px;
+  letter-spacing: .12em;
+}
+
+.qr-validity strong {
+  font-size: 15px;
+}
+
+.qr-error {
+  margin-top: 10px;
+  padding: 9px 12px;
+  border: 1px solid rgba(255,100,100,.2);
+  border-radius: 10px;
+  color: #ff8585;
+  background: rgba(255,70,70,.06);
+  font-size: 11px;
+  text-align: center;
+}
+
+.qr-token-balance {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.qr-token-balance > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted, #9c9c9c);
+  font-size: 12px;
+}
+
+.qr-token-balance svg {
+  color: var(--accent, #d9ff38);
+}
+
+.qr-token-balance strong {
+  font-size: 17px;
+}
+
+/* =========================================================
+   PROFILE ACTIVITY
+   ========================================================= */
+
+.profile-activity-list {
+  overflow: hidden;
+}
+
+.profile-activity-row {
+  display: grid;
+  grid-template-columns: 34px minmax(0,1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 0;
+  border-bottom: 1px solid rgba(255,255,255,.055);
+}
+
+.profile-activity-row:last-child {
+  border-bottom: 0;
+}
+
+.profile-activity-row > div:nth-child(2) {
+  min-width: 0;
+}
+
+.profile-activity-row strong,
+.profile-activity-row span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-activity-row strong {
+  font-size: 12px;
+}
+
+.profile-activity-row span {
+  margin-top: 3px;
+  color: var(--text-muted, #9c9c9c);
+  font-size: 10px;
+}
+
+.profile-activity-row > b {
+  font-size: 13px;
+}
+
+@media (min-width: 600px) {
+  .dashboard-stats-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .activity-row time {
+    display: block;
+    color: var(--text-muted, #777);
+    font-size: 9px;
+    white-space: nowrap;
+  }
+}
+
+/* =========================================================
+   CUSTOM ROLE SELECT
+   ========================================================= */
+
+.custom-role-select {
+  position: relative;
+  margin-top: 8px;
+}
+
+.custom-role-trigger {
+  width: 100%;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 13px;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 12px;
+  background: rgba(255,255,255,.045);
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.custom-role-trigger:hover,
+.custom-role-trigger:focus-visible {
+  border-color: rgba(217,255,56,.35);
+  outline: none;
+}
+
+.custom-role-chevron {
+  color: var(--accent, #d9ff38);
+  font-size: 17px;
+  line-height: 1;
+  transition: transform .16s ease;
+}
+
+.custom-role-chevron.open {
+  transform: rotate(180deg);
+}
+
+.custom-role-menu {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  padding: 5px;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 13px;
+  background: rgba(18,18,18,.98);
+  box-shadow: 0 18px 40px rgba(0,0,0,.45);
+}
+
+.custom-role-option {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 11px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.custom-role-option:hover,
+.custom-role-option.selected {
+  background: rgba(217,255,56,.09);
+  color: var(--accent, #d9ff38);
+}

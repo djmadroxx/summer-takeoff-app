@@ -8,6 +8,7 @@ import { ShopPage } from './pages/ShopPage';
 import { ProductsAdminPage } from './pages/ProductsAdminPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { EventsPage } from './pages/EventsPage';
+import { DashboardPage } from './pages/DashboardPage';
 import PWAOnly from './PWAOnly';
 
 import { NotificationContainer } from './components/NotificationContainer';
@@ -56,7 +57,7 @@ function AppContent() {
     useState<Page>(
       () =>
         getStoredUser()
-          ? 'qr'
+          ? 'home'
           : 'login',
     );
 
@@ -207,7 +208,8 @@ function AppContent() {
      */
     if (
       nextPage === 'scanner' &&
-      user.role !== 'admin'
+      user.role !== 'admin' &&
+      user.role !== 'pultos'
     ) {
       setPage('qr');
       return;
@@ -251,6 +253,15 @@ function AppContent() {
           onRegister={() =>
             setPage('register')
           }
+        />
+      );
+    }
+
+    if (page === 'home') {
+      return (
+        <DashboardPage
+          user={user}
+          onNavigate={navigate}
         />
       );
     }
@@ -324,7 +335,8 @@ function AppContent() {
       page === 'scanner'
     ) {
       if (
-        user.role !== 'admin'
+        user.role !== 'admin' &&
+        user.role !== 'pultos'
       ) {
         setPage('qr');
         return null;

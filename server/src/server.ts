@@ -18,6 +18,7 @@ import { authRoutes } from './auth/auth.routes.js';
 import { scannerRoutes } from './scanner.routes.js';
 import { productsRoutes } from './products.routes.js';
 import { notificationRoutes } from './notifications.routes.js';
+import { activityRoutes } from './activity.routes.js';
 
 const app = Fastify({
   logger: true,
@@ -76,6 +77,10 @@ await app.register(productsRoutes, {
 
 await app.register(notificationRoutes, {
   prefix: '/api',
+});
+
+await app.register(activityRoutes, {
+  prefix: '/api/activity',
 });
 
 app.get('/api/health', async () => {

@@ -4,7 +4,6 @@ import {
 } from 'react';
 
 import {
-  Copy,
   LogOut,
   ShieldCheck,
   UserRound,
@@ -13,12 +12,7 @@ import {
 
 import { QRCodeSVG } from 'qrcode.react';
 
-import {
-  getRoleLabel,
-} from '@summer-takeoff/shared';
-
 import { AnimatedBackground } from '../components/AnimatedBackground';
-import { BottomNav } from '../components/BottomNav';
 import { Logo } from '../components/Logo';
 
 import type { User } from '../lib/auth';
@@ -200,16 +194,6 @@ export function QrPage({
     };
   }, [expiresAt]);
 
-  async function copyId() {
-    try {
-      await navigator.clipboard.writeText(
-        user.memberId,
-      );
-    } catch {
-      // Clipboard access can be blocked by the browser.
-    }
-  }
-
   const formattedTime =
     `00:${String(
       Math.max(
@@ -256,146 +240,65 @@ export function QrPage({
           <div className="ticket-topline">
             <div className="ticket-brand">
               <ShieldCheck size={17} />
-
-              <strong>
-                {user.memberId}
-              </strong>
-
-              <Copy
-                size={17}
-                aria-label="Tag azonosító másolása"
-                onClick={copyId}
-              />
+              <strong>SAJÁT QR-KÓD</strong>
             </div>
 
-            <span className="status-pill">
+            <span className="status-pill-online">
               <span />
               AKTÍV
             </span>
           </div>
 
           <div className="ticket-title">
-            <h2>
-              {getRoleLabel(
-                user.role,
-              )}
-            </h2>
+            <h2>Belépőkód</h2>
+            <p>Mutasd fel a pultnál a beolvasáshoz.</p>
           </div>
 
-          <div className="qr-stage">
+          <div className="qr-stage qr-stage-large">
             <div className="qr-glow" />
-
-            <div className="qr-frame">
+            <div className="qr-frame qr-frame-large">
               {qrValue ? (
                 <QRCodeSVG
                   bgColor="#ffffff"
                   fgColor="#050505"
                   includeMargin
                   level="M"
-                  size={128}
+                  size={190}
                   value={qrValue}
                 />
               ) : (
-                <div
-                  style={{
-                    width: 128,
-                    height: 128,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent:
-                      'center',
-                    background:
-                      '#ffffff',
-                    color: '#050505',
-                    fontSize: 12,
-                    textAlign:
-                      'center',
-                    padding: 12,
-                  }}
-                >
+                <div className="qr-loading">
                   QR betöltése...
                 </div>
               )}
-
               <div className="scan-line" />
             </div>
           </div>
 
-          <div className="qr-caption">
-            <ShieldCheck size={17} />
-
-            <span>
-              A QR-kód biztonsági okokból
-              rendszeresen megújul.
-            </span>
-          </div>
-
-          <div
-            className="qr-caption"
-            style={{
-              justifyContent:
-                'center',
-              marginTop: 10,
-            }}
-          >
-            <span>
-              ÉRVÉNYES MÉG{' '}
-              <strong>
-                {formattedTime}
-              </strong>
-            </span>
+          <div className="qr-validity">
+            <span>ÉRVÉNYES MÉG</span>
+            <strong>{formattedTime}</strong>
           </div>
 
           {qrError && (
-            <div
-              className="qr-caption"
-              style={{
-                justifyContent:
-                  'center',
-                marginTop: 10,
-              }}
-            >
-              <span>
-                {qrError}
-              </span>
+            <div className="qr-error" role="alert">
+              <span>{qrError}</span>
             </div>
           )}
 
           <div className="ticket-divider" />
 
-          <div className="qr-caption">
-            <Coins size={17} />
-
-            <span>
-              TOKENEID: {user.token} db
-            </span>
-          </div>
-
-          <div className="member-row">
+          <div className="qr-token-balance">
             <div>
-              <span>
-                FELHASZNÁLÓNÉV
-              </span>
-
-              <strong>
-                @{user.username}
-              </strong>
+              <Coins size={19} />
+              <span>Tokenegyenleg</span>
             </div>
+            <strong>{user.token} db</strong>
           </div>
         </section>
 
-        <p className="footer-note">
-          A QR-kódod 60 másodpercenként
-          automatikusan megújul. Ne oszd meg
-          másokkal.
-        </p>
       </div>
 
-      <BottomNav
-        active="qr"
-        user={user}
-        onNavigate={() => {}}
-      />
     </main>
   );
 }

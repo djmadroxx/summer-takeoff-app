@@ -2,10 +2,10 @@ import type { FastifyInstance } from 'fastify';
 
 import { createHmac, timingSafeEqual } from 'node:crypto';
 
-import { eq, sql } from 'drizzle-orm';
+import { and, eq, gte, sql } from 'drizzle-orm';
 
 import { db } from './db/index.js';
-import { users } from './db/schema.js';
+import { tokenTransactions, users } from './db/schema.js';
 
 import {
   isValidRole,
@@ -463,10 +463,10 @@ if (searchValue.startsWith('STQR.')) {
           role:
             updatedUser.role,
         };
-      } catch {
-        return reply.code(401).send({
-          message:
-            'Érvénytelen vagy hiányzó bejelentkezés.',
+      } catch (error) {
+        request.log.error(error, 'Scanner role módosítási hiba.');
+        return reply.code(500).send({
+          message: 'A szerepkör módosítása sikertelen.',
         });
       }
     },
@@ -484,97 +484,90 @@ if (searchValue.startsWith('STQR.')) {
       try {
         await request.jwtVerify();
 
-        const authUser =
-          request.user as JwtPayload;
+        const authUser = request.user as JwtPayload;
 
-        if (
-          authUser.role !== 'admin'
-        ) {
+        if (authUser.role !== 'admin' && authUser.role !== 'pultos') {
           return reply.code(403).send({
-            message:
-              'Nincs jogosultságod ehhez a művelethez.',
+            message: 'Nincs jogosultságod ehhez a művelethez.',
           });
         }
 
-        const {
-          userId,
-          amount,
-        } = request.body;
+        const { userId, amount } = request.body;
 
         if (!userId) {
           return reply.code(400).send({
-            message:
-              'Felhasználó azonosító megadása kötelező.',
+            message: 'Felhasználó azonosító megadása kötelező.',
           });
         }
 
-        if (
-          !Number.isInteger(
-            amount,
-          ) ||
-          amount === 0
-        ) {
+        if (!Number.isInteger(amount) || amount === 0) {
           return reply.code(400).send({
-            message:
-              'Érvényes, nullától különböző token mennyiséget adj meg.',
+            message: 'Érvényes, nullától különböző token mennyiséget adj meg.',
           });
         }
 
-        const result =
-          await db
+        if (userId === authUser.sub) {
+          return reply.code(400).send({
+            message: 'Saját magadnak nem adhatsz vagy vonhatsz le tokeneket.',
+          });
+        }
+
+        const result = await db.transaction(async (tx) => {
+          const updated = await tx
             .update(users)
             .set({
-              token:
-                amount > 0
-                  ? sql`${users.token} + ${amount}`
-                  : sql`GREATEST(${users.token} + ${amount}, 0)`,
-              updatedAt:
-                new Date(),
+              token: amount > 0
+                ? sql`${users.token} + ${amount}`
+                : sql`GREATEST(${users.token} + ${amount}, 0)`,
+              updatedAt: new Date(),
             })
             .where(
-              eq(
-                users.id,
-                userId,
-              ),
+              amount > 0
+                ? eq(users.id, userId)
+                : and(eq(users.id, userId), gte(users.token, Math.abs(amount))),
             )
-            .returning({
-              id: users.id,
-              token: users.token,
-            });
+            .returning({ id: users.id, token: users.token });
 
-        const updatedUser =
-          result[0];
+          if (updated.length === 0) {
+            const exists = await tx
+              .select({ id: users.id })
+              .from(users)
+              .where(eq(users.id, userId))
+              .limit(1);
 
-        if (!updatedUser) {
-          return reply.code(404).send({
-            message:
-              'A felhasználó nem található.',
+            if (exists.length === 0) throw new Error('USER_NOT_FOUND');
+            throw new Error('INSUFFICIENT_TOKENS');
+          }
+
+          await tx.insert(tokenTransactions).values({
+            userId,
+            type: amount > 0 ? 'add' : 'remove',
+            amount,
+            performedByUserId: authUser.sub,
+            description: amount > 0 ? 'Manuális token hozzáadás' : 'Manuális token levonás',
           });
-        }
+
+          return updated[0];
+        });
 
         await sendNotify(
-          updatedUser.id,
+          result.id,
           'success',
-          authUser.username +
-            ' adott neked ' +
-            amount +
-            ' token-t. Mostantól ' +
-            updatedUser.token +
-            ' tokened van.',
+          `${authUser.username} ${amount > 0 ? 'adott neked' : 'levont tőled'} ${Math.abs(amount)} tokent. Mostantól ${result.token} tokened van.`,
         );
 
-        return {
-          userId:
-            updatedUser.id,
-          token:
-            updatedUser.token,
-        };
-      } catch {
-        return reply.code(401).send({
-          message:
-            'Érvénytelen vagy hiányzó bejelentkezés.',
-        });
+        return { userId: result.id, token: result.token };
+      } catch (error) {
+        if (error instanceof Error && error.message === 'USER_NOT_FOUND') {
+          return reply.code(404).send({ message: 'A felhasználó nem található.' });
+        }
+        if (error instanceof Error && error.message === 'INSUFFICIENT_TOKENS') {
+          return reply.code(400).send({ message: 'A felhasználónak nincs elegendő tokenje.' });
+        }
+        request.log.error(error, 'Scanner token hiba.');
+        return reply.code(500).send({ message: 'A tokenmódosítás sikertelen.' });
       }
     },
   );
+
 }
